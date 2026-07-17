@@ -4,4 +4,4 @@ Allow: /
 # Block access to API routes (even though they are serverless functions)
 Disallow: /api/
 
-Sitemap: https://cramly-app.vercel.app/sitemap.xml
+Sitemap: https://cramly-git-main-ashishsharma90807-gmailcoms-projects.vercel.app/sitemap.xml
