@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block access to API routes (even though they are serverless functions)
+Disallow: /api/
+
+Sitemap: https://cramly-app.vercel.app/sitemap.xml
