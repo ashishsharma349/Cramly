@@ -7,6 +7,7 @@ import {
   Sun,
   Moon,
   Wand2,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -90,20 +91,23 @@ export function Sidebar({
           <Button className="mt-4 w-full rounded-xl" onClick={onAuthClick}>Sign Up / Log In</Button>
         </div>
       ) : (
-        <div className="mt-8 rounded-2xl border border-border bg-secondary/50 p-4">
-          <div className="mb-2 px-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Account
+        <div className="mt-8 rounded-[20px] border border-border/80 bg-[#fafafa] dark:bg-card/50 p-5">
+          <div className="mb-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
+            ACCOUNT
           </div>
-          <div className="flex items-center gap-3 rounded-xl bg-background p-3 border border-border">
-            <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
-              {user.name.charAt(0).toUpperCase()}
+          <div className="flex items-center gap-3.5 mb-5">
+            <div className="size-11 shrink-0 rounded-full bg-[#e8f3ec] dark:bg-emerald-950/40 flex items-center justify-center text-[#1b4332] dark:text-emerald-400 font-bold text-sm tracking-wide">
+              {user.name.substring(0, 2).toUpperCase()}
             </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-semibold">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">Quota: <strong className={user.freeCheatsheetsRemaining === 0 ? "text-rose-500 font-bold" : "font-semibold"}>{user.freeCheatsheetsRemaining} left</strong></p>
+            <div className="flex-1 overflow-hidden leading-tight">
+              <p className="truncate text-[15px] font-semibold text-foreground/90">{user.name}</p>
+              <p className={cn("truncate text-[13px] mt-0.5", user.freeCheatsheetsRemaining === 0 ? "text-rose-500 font-medium" : "text-[#2e7d56] dark:text-emerald-500 font-medium")}>
+                {user.freeCheatsheetsRemaining} / 5 Free Credits
+              </p>
             </div>
           </div>
-          <button onClick={onLogout} className="w-full mt-3 rounded-xl py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-background transition-colors border border-border">
+          <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 rounded-[12px] py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-border/80 shadow-sm">
+            <LogOut className="size-4" />
             Log Out
           </button>
         </div>

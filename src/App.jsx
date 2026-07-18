@@ -194,6 +194,7 @@ export default function App() {
             onViewAllClick={() => setActiveTab('cheatsheets')}
             onCreateClick={() => setActiveTab('generate')}
             onNavigate={(id) => setActiveTab(id)}
+            onMenuClick={() => setMobileDrawerOpen(true)}
           />
         ) : activeTab === 'about' ? (
           <AboutPage onBack={() => setActiveTab('home')} />

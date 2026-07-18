@@ -1,0 +1,275 @@
+{
+  "communities": {
+    "0": [
+      "app_mobiledrawer",
+      "components_cheatsheet_app_shell",
+      "components_cheatsheet_app_shell_appshell",
+      "components_cheatsheet_app_shell_mobiledrawer",
+      "components_cheatsheet_app_shell_nav",
+      "components_cheatsheet_bottom_nav",
+      "components_cheatsheet_bottom_nav_bottomnav",
+      "components_cheatsheet_bottom_nav_bottomnavprops",
+      "components_cheatsheet_bottom_nav_nav",
+      "components_cheatsheet_generator_form_generatorform",
+      "components_cheatsheet_hero",
+      "components_cheatsheet_hero_hero",
+      "components_cheatsheet_mobile_header",
+      "components_cheatsheet_mobile_header_mobileheader",
+      "components_cheatsheet_mobile_header_mobileheaderprops",
+      "components_cheatsheet_sidebar",
+      "components_cheatsheet_sidebar_nav",
+      "components_cheatsheet_sidebar_sidebar",
+      "components_cheatsheet_sidebar_sidebarprops",
+      "lib_utils",
+      "lib_utils_cn"
+    ],
+    "1": [
+      "app",
+      "app_howitworksmodal",
+      "app_nav",
+      "components_cheatsheet_about_page",
+      "components_cheatsheet_about_page_aboutpage",
+      "components_cheatsheet_contact_page",
+      "components_cheatsheet_contact_page_contactpage",
+      "components_cheatsheet_quota_modal",
+      "components_cheatsheet_quota_modal_quotamodal",
+      "components_cheatsheet_quota_modal_quotamodalprops",
+      "components_cheatsheet_status_poller",
+      "components_cheatsheet_status_poller_stages",
+      "components_cheatsheet_status_poller_statuspoller",
+      "components_cheatsheet_tos_page",
+      "components_cheatsheet_tos_page_tospage",
+      "components_ui_button",
+      "components_ui_button_button",
+      "components_ui_button_buttonvariants"
+    ],
+    "2": [
+      "components_cheatsheet_data",
+      "components_cheatsheet_data_badge_styles",
+      "components_cheatsheet_data_badgelevel",
+      "components_cheatsheet_data_cheatsheet",
+      "components_cheatsheet_data_level",
+      "components_cheatsheet_data_levelid",
+      "components_cheatsheet_data_levels",
+      "components_cheatsheet_data_recent_cheatsheets",
+      "components_cheatsheet_data_subjects",
+      "components_cheatsheet_generator_form",
+      "components_cheatsheet_generator_form_steplabel",
+      "components_cheatsheet_recent_cheatsheets",
+      "components_cheatsheet_recent_cheatsheets_formatdate",
+      "components_cheatsheet_recent_cheatsheets_getnormalizedlevel",
+      "components_cheatsheet_recent_cheatsheets_getsubjectcolors",
+      "components_cheatsheet_recent_cheatsheets_getsubjecticon",
+      "components_cheatsheet_recent_cheatsheets_verification_badge_labels",
+      "components_cheatsheet_recent_cheatsheets_verification_badge_styles"
+    ],
+    "3": [
+      "app_app",
+      "components_cheatsheet_auth_context",
+      "components_cheatsheet_auth_context_authcontext",
+      "components_cheatsheet_auth_context_authcontexttype",
+      "components_cheatsheet_auth_context_authprovider",
+      "components_cheatsheet_auth_context_useauth",
+      "components_cheatsheet_auth_context_user",
+      "components_cheatsheet_auth_page",
+      "components_cheatsheet_auth_page_authpage",
+      "components_cheatsheet_auth_page_authpageprops",
+      "components_cheatsheet_top_navbar",
+      "components_cheatsheet_top_navbar_topnavbar",
+      "lib_auth_client",
+      "lib_auth_client_authclient",
+      "main",
+      "main_queryclient"
+    ],
+    "4": [
+      "api_client",
+      "api_client_deletejob",
+      "api_client_generatecheatsheet",
+      "api_client_getjobstatus",
+      "api_client_getrecentjobs",
+      "components_inputform",
+      "components_inputform_inputform",
+      "components_inputform_subjects",
+      "components_recentcheatsheets",
+      "components_recentcheatsheets_getsubjecticon",
+      "components_recentcheatsheets_recentcheatsheets",
+      "components_statuspoller",
+      "components_statuspoller_statuspoller",
+      "pages_generator",
+      "pages_generator_generator"
+    ],
+    "5": [
+      "components_cheatsheet_feature_cards",
+      "components_cheatsheet_feature_cards_featurecards",
+      "components_cheatsheet_feature_cards_features",
+      "components_cheatsheet_footer",
+      "components_cheatsheet_footer_footer",
+      "components_cheatsheet_home_hero",
+      "components_cheatsheet_home_hero_homehero",
+      "components_cheatsheet_home_page",
+      "components_cheatsheet_home_page_backup",
+      "components_cheatsheet_home_page_backup_homepage",
+      "components_cheatsheet_home_page_homepage",
+      "components_cheatsheet_recent_cheatsheets_recentcheatsheets",
+      "components_cheatsheet_right_sidebar",
+      "components_cheatsheet_right_sidebar_rightsidebar"
+    ],
+    "6": [
+      "components_cheatsheet_preview_modal",
+      "components_cheatsheet_preview_modal_fixsinglelinetables",
+      "components_cheatsheet_preview_modal_getoutputlabel",
+      "components_cheatsheet_preview_modal_preprocesstables",
+      "components_cheatsheet_preview_modal_previewmodal",
+      "components_cheatsheet_preview_modal_previewmodalprops",
+      "components_cheatsheet_preview_modal_rendermarkdown",
+      "components_cheatsheet_preview_modal_sectionverificationbadge",
+      "components_cheatsheet_preview_modal_verificationbadge"
+    ],
+    "7": [
+      "components_bottomnav",
+      "components_bottomnav_bottomnav"
+    ],
+    "8": [
+      "components_mobileheader",
+      "components_mobileheader_mobileheader"
+    ],
+    "9": [
+      "components_previewmodal",
+      "components_previewmodal_previewmodal"
+    ],
+    "10": [
+      "components_sidebar",
+      "components_sidebar_sidebar"
+    ],
+    "11": [
+      "lib_auth_client_signin_signup_usesession"
+    ]
+  },
+  "cohesion": {
+    "0": 0.1380952380952381,
+    "1": 0.20915032679738563,
+    "2": 0.1437908496732026,
+    "3": 0.18333333333333332,
+    "4": 0.2,
+    "5": 0.27472527472527475,
+    "6": 0.2777777777777778,
+    "7": 1.0,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0
+  },
+  "gods": [
+    {
+      "id": "components_cheatsheet_auth_context_useauth",
+      "label": "useAuth()",
+      "degree": 7
+    },
+    {
+      "id": "components_ui_button_button",
+      "label": "Button()",
+      "degree": 7
+    },
+    {
+      "id": "lib_utils_cn",
+      "label": "cn()",
+      "degree": 6
+    },
+    {
+      "id": "components_cheatsheet_recent_cheatsheets_recentcheatsheets",
+      "label": "RecentCheatsheets()",
+      "degree": 5
+    },
+    {
+      "id": "components_cheatsheet_generator_form_generatorform",
+      "label": "GeneratorForm()",
+      "degree": 4
+    },
+    {
+      "id": "components_cheatsheet_sidebar_sidebar",
+      "label": "Sidebar()",
+      "degree": 4
+    },
+    {
+      "id": "components_cheatsheet_top_navbar_topnavbar",
+      "label": "TopNavbar()",
+      "degree": 4
+    },
+    {
+      "id": "app_app",
+      "label": "App()",
+      "degree": 3
+    },
+    {
+      "id": "api_client_generatecheatsheet",
+      "label": "generateCheatsheet()",
+      "degree": 3
+    },
+    {
+      "id": "api_client_getjobstatus",
+      "label": "getJobStatus()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "MobileDrawer()",
+      "target": "cn()",
+      "source_files": [
+        "App.jsx",
+        "lib/utils.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `MobileDrawer()` unexpectedly reaches hub `cn()`"
+    },
+    {
+      "source": "MobileDrawer()",
+      "target": "cn()",
+      "source_files": [
+        "components/cheatsheet/app-shell.tsx",
+        "lib/utils.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; peripheral node `MobileDrawer()` unexpectedly reaches hub `cn()`"
+    },
+    {
+      "source": "Button()",
+      "target": "cn()",
+      "source_files": [
+        "components/ui/button.tsx",
+        "lib/utils.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "GeneratorForm()",
+      "target": "cn()",
+      "source_files": [
+        "components/cheatsheet/generator-form.tsx",
+        "lib/utils.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "Sidebar()",
+      "target": "cn()",
+      "source_files": [
+        "components/cheatsheet/sidebar.tsx",
+        "lib/utils.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
