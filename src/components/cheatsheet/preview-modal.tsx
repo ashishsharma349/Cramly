@@ -129,12 +129,6 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {data.description && (
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground leading-relaxed">
-              <span dangerouslySetInnerHTML={{ __html: 'Note: ' + renderMarkdown(data.description) }} />
-            </div>
-          )}
-
           <div className="space-y-4">
             {data.sections &&
               data.sections.map((section: any, idx: number) => {
@@ -155,11 +149,6 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
                     <div className="flex items-center justify-between text-base font-semibold text-foreground">
                       <div className="flex items-center gap-2">
                         <span>{section.name}</span>
-                        {section.verification && (
-                          <SectionVerificationBadge
-                            verification={section.verification}
-                          />
-                        )}
                       </div>
                       {section.language && !['markdown', 'text', 'none'].includes(section.language.toLowerCase()) && (
                         <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] uppercase text-muted-foreground font-medium">

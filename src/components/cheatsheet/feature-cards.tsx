@@ -30,8 +30,8 @@ const FEATURES = [
   {
     id: 4,
     icon: BookOpen,
-    title: 'Any Subject',
-    description: 'From CS to Biology, we\'ve got you covered',
+    title: 'Multiple Domains',
+    description: 'History, Geography, Science, Maths, Tech',
     colorText: 'text-blue-600',
     colorBg: 'bg-blue-50',
   },
