@@ -7,4 +7,17 @@
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+  <!-- SEO Niche Pages -->
+  <url>
+    <loc>https://cramly-git-main-ashishsharma90807-gmailcoms-projects.vercel.app/programming</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cramly-git-main-ashishsharma90807-gmailcoms-projects.vercel.app/science</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
