@@ -2,6 +2,18 @@ import httpProxy from 'http-proxy';
 
 const proxy = httpProxy.createProxyServer();
 
+proxy.on('proxyReq', (proxyReq, req) => {
+  console.log("proxyReq fired: " + req.method + " " + req.url);
+});
+
+proxy.on('proxyRes', (proxyRes, req) => {
+  console.log("proxyRes: " + proxyRes.statusCode + " for " + req.method + " " + req.url);
+});
+
+proxy.on('error', (err, req, res) => {
+  console.error("proxy error for " + req.method + " " + req.url + ":", err);
+});
+
 // Vercel Serverless Function to proxy /api requests to Hugging Face
 export default function handler(req, res) {
   console.log("proxy started");
@@ -20,7 +32,7 @@ export default function handler(req, res) {
       secure: true, // Validate SSL certs
     }, (err) => {
       if (err) {
-        console.error('Proxy error:', err);
+        console.error('Proxy callback error:', err);
         if (!res.headersSent) {
           res.status(502).json({ error: 'Proxy error', details: err.message });
         }
