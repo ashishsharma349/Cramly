@@ -4,6 +4,7 @@ const proxy = httpProxy.createProxyServer();
 
 // Vercel Serverless Function to proxy /api requests to Hugging Face
 export default function handler(req, res) {
+  console.log("proxy started");
   return new Promise((resolve, reject) => {
     const target = process.env.HF_SPACE_URL || 'http://localhost:3000';
     
@@ -12,6 +13,7 @@ export default function handler(req, res) {
       req.headers['authorization'] = `Bearer ${process.env.HF_API_KEY}`;
     }
 
+    console.log("proxy.web initiating for: " + req.method + " " + req.url);
     proxy.web(req, res, {
       target: target,
       changeOrigin: true,
@@ -25,5 +27,6 @@ export default function handler(req, res) {
       }
       resolve();
     });
+    console.log("proxy.web called");
   });
 }
