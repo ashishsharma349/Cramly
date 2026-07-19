@@ -58,20 +58,21 @@ export function NichePage({
                 </div>
                 <div className="prose dark:prose-invert max-w-2xl text-muted-foreground space-y-4 leading-relaxed">
                   <p className="text-base">
-                    Cramly is a solo passion project built to solve one problem: turning scattered notes into concise, structured revision material you can actually rely on. Your feedback directly shapes its future.
+                    Like many learners, I found myself jumping between textbooks, lecture slides, YouTube videos, blogs, and AI tools just to grasp a single topic. It was time-consuming, repetitive, and often left me with pages of notes but very little clarity.
                   </p>
                   <p className="text-base font-medium text-foreground">
-                    Thank you for giving Cramly a try. I hope it saves you time and makes learning a little less stressful.
+                    Thank you for giving Cramly a try. I hope it saves you time, makes learning a little less stressful, and becomes a tool you can rely on.
                   </p>
                 </div>
                 
                 <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">A Note on AI</h3>
                   <div className="flex items-start gap-3 rounded-xl border border-border/50 bg-secondary/30 p-4">
                     <div className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
                       <Info className="size-3 text-primary" />
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <strong className="text-foreground font-medium">Note:</strong> Cramly strives for accuracy, but occasional mistakes are possible. If you spot something off, please report it — every report helps improve future results.
+                      <strong className="text-foreground font-medium">No AI system is perfect.</strong> Cramly combines retrieval, verification, and multiple quality checks to maximize accuracy, but occasional mistakes are still possible. If you notice something that could be improved, please report it. Every report helps make future generations more accurate and reliable.
                     </div>
                   </div>
                 </div>
