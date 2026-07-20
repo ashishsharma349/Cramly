@@ -97,11 +97,13 @@ const VERIFICATION_BADGE_LABELS = {
 // Renders lists of generated cheatsheets with actions.
 export function RecentCheatsheets({
   jobs,
+  isGuest,
   onPreview,
   onDelete,
   onViewAllClick,
 }: {
   jobs: any[]
+  isGuest?: boolean
   onPreview: (job: any) => void
   onDelete: (jobId: string) => void
   onViewAllClick?: () => void
@@ -110,6 +112,11 @@ export function RecentCheatsheets({
 
   return (
     <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      {isGuest && (
+        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/50 dark:border-amber-900/40 dark:bg-amber-950/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
+          Guest history is stored only on this device. Sign up to save permanently.
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <ScrollText className="size-5 text-primary" />
@@ -208,7 +215,7 @@ export function RecentCheatsheets({
                           Preview
                         </button>
                         <a
-                          href={job.downloadUrl}
+                          href={job.downloadUrl || `/api/uploads/${job.jobId}.pdf`}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
@@ -262,7 +269,7 @@ export function RecentCheatsheets({
                           <Eye className="size-5" />
                         </button>
                         <a
-                          href={job.downloadUrl}
+                          href={job.downloadUrl || `/api/uploads/${job.jobId}.pdf`}
                           target="_blank"
                           rel="noreferrer"
                           className="flex size-9 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10"

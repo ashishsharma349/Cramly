@@ -11,6 +11,7 @@ import { RecentCheatsheets } from './recent-cheatsheets'
 
 export function HomePage({
   jobs,
+  isGuest,
   onPreview,
   onDelete,
   onViewAllClick,
@@ -19,6 +20,7 @@ export function HomePage({
   onMenuClick
 }: {
   jobs: any[]
+  isGuest: boolean
   onPreview: (job: any) => void
   onDelete: (jobId: string) => void
   onViewAllClick: () => void
@@ -106,6 +108,7 @@ export function HomePage({
               </div>
               <RecentCheatsheets
                 jobs={jobs}
+                isGuest={isGuest}
                 onPreview={onPreview}
                 onDelete={onDelete}
                 onViewAllClick={onViewAllClick}
