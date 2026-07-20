@@ -22,6 +22,7 @@ import { PreviewModal } from './components/cheatsheet/preview-modal'
 import { StatusPoller } from './components/cheatsheet/status-poller'
 import { Button } from './components/ui/button'
 import { HomePage } from './components/cheatsheet/home-page'
+import { HomePageV2 } from './components/cheatsheet/home-page-v2'
 import { Wand2, LogOut } from 'lucide-react'
 import { AuthPage } from './components/cheatsheet/auth-page'
 import { useAuth } from './components/cheatsheet/auth-context'
@@ -38,6 +39,7 @@ import {
 
 const NAV = [
   { id: 'home', label: 'Home', icon: Home },
+  { id: 'home-2', label: 'Home V2', icon: Home },
   { id: 'generate', label: 'Generate', icon: Wand2 },
   { id: 'cheatsheets', label: 'My Cheatsheets', icon: FileText },
   { id: 'favorites', label: 'Favorites', icon: Star },
@@ -62,6 +64,14 @@ export default function App() {
     retry: false,
     enabled: !!user,
   })
+  const [guestJobs, setGuestJobs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cramly_guest_jobs')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const [activeJob, setActiveJob] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [toast, setToast] = useState(null)
@@ -81,9 +91,19 @@ export default function App() {
     setTimeout(() => setToast(null), 5000)
   }
 
-  const handleOpenPreview = (job) => {
-    setPreviewJob(job)
-    setIsModalOpen(true)
+  const handleOpenPreview = async (job) => {
+    if (job.cheatsheetJSON) {
+      setPreviewJob(job)
+      setIsModalOpen(true)
+    } else {
+      try {
+        const fullJob = await getJobStatus(job.jobId)
+        setPreviewJob(fullJob)
+        setIsModalOpen(true)
+      } catch (err) {
+        showToast('Failed to load cheatsheet preview.', 'error')
+      }
+    }
   }
 
   const startPolling = (jobId) => {
@@ -99,6 +119,22 @@ export default function App() {
           clearInterval(pollTimerRef.current)
           setActiveJob(null)
           setIsGenerating(false)
+          if (!user) {
+            setGuestJobs((prev) => {
+              const exist = prev.some((j) => j.jobId === statusData.jobId)
+              if (exist) return prev
+              const newJob = {
+                jobId: statusData.jobId,
+                topic: statusData.cheatsheetJSON?.topic || activeJob?.topic || 'Untitled',
+                subject: statusData.cheatsheetJSON?.subject || activeJob?.subject || 'General',
+                level: statusData.cheatsheetJSON?.level || activeJob?.level || 'School',
+                createdAt: new Date().toISOString()
+              }
+              const updated = [newJob, ...prev].slice(0, 5)
+              localStorage.setItem('cramly_guest_jobs', JSON.stringify(updated))
+              return updated
+            })
+          }
           refetchJobs()
           refreshUser()
           showToast('PDF generated successfully!')
@@ -120,7 +156,7 @@ export default function App() {
   const handleGenerateSubmit = async (formData) => {
     try {
       setIsGenerating(true)
-      setActiveJob({ topic: formData.topic, level: formData.level, attempts: 0, status: 'pending' })
+      setActiveJob({ topic: formData.topic, level: formData.level, subject: formData.subject, attempts: 0, status: 'pending' })
       const response = await generateCheatsheet(formData)
       startPolling(response.jobId)
     } catch (err) {
@@ -136,6 +172,16 @@ export default function App() {
 
   const handleDeleteJob = async (jobId) => {
     if (!window.confirm('Are you sure you want to delete this cheatsheet?')) {
+      return
+    }
+
+    if (!user) {
+      setGuestJobs((prev) => {
+        const updated = prev.filter((j) => j.jobId !== jobId)
+        localStorage.setItem('cramly_guest_jobs', JSON.stringify(updated))
+        return updated
+      })
+      showToast('Cheatsheet removed from local history.')
       return
     }
 
@@ -173,6 +219,9 @@ export default function App() {
     return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading...</div>
   }
 
+  const displayJobs = user ? jobs : guestJobs
+  const isGuest = !user
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar
@@ -188,7 +237,8 @@ export default function App() {
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         {activeTab === 'home' ? (
           <HomePage
-            jobs={jobs.slice(0, 3)}
+            jobs={displayJobs.slice(0, 3)}
+            isGuest={isGuest}
             onPreview={handleOpenPreview}
             onDelete={handleDeleteJob}
             onViewAllClick={() => setActiveTab('cheatsheets')}
@@ -196,6 +246,8 @@ export default function App() {
             onNavigate={(id) => setActiveTab(id)}
             onMenuClick={() => setMobileDrawerOpen(true)}
           />
+        ) : activeTab === 'home-2' ? (
+          <HomePageV2 />
         ) : activeTab === 'about' ? (
           <AboutPage onBack={() => setActiveTab('home')} />
         ) : activeTab === 'contact' ? (
@@ -227,7 +279,8 @@ export default function App() {
                   <StatusPoller currentJob={activeJob} />
                   <GeneratorForm onSubmit={handleGenerateSubmit} isGenerating={isGenerating} />
                   <RecentCheatsheets
-                    jobs={jobs.slice(0, 3)}
+                    jobs={displayJobs.slice(0, 3)}
+                    isGuest={isGuest}
                     onPreview={handleOpenPreview}
                     onDelete={handleDeleteJob}
                     onViewAllClick={() => setActiveTab('cheatsheets')}
@@ -246,7 +299,8 @@ export default function App() {
                 </p>
               </div>
               <RecentCheatsheets
-                jobs={jobs}
+                jobs={displayJobs}
+                isGuest={isGuest}
                 onPreview={handleOpenPreview}
                 onDelete={handleDeleteJob}
               />
