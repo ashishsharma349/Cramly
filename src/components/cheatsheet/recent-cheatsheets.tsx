@@ -142,7 +142,7 @@ export function RecentCheatsheets({
         ) : (
           <ul className="divide-y divide-border">
             {jobs.map((job) => {
-              const isCompleted = job.status === 'done'
+              const isCompleted = job.status === 'done' || !job.status
               const isFailed = job.status === 'error'
               const isProcessing = job.status === 'processing' || job.status === 'pending'
               const IconComponent = getSubjectIcon(job.subject)
