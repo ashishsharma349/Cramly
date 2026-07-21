@@ -39,7 +39,6 @@ import {
 
 const NAV = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'home-2', label: 'Home V2', icon: Home },
   { id: 'generate', label: 'Generate', icon: Wand2 },
   { id: 'cheatsheets', label: 'My Cheatsheets', icon: FileText },
   { id: 'favorites', label: 'Favorites', icon: Star },

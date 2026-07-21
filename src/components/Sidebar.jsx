@@ -27,13 +27,7 @@ export default function Sidebar({ activeTab, setActiveTab, theme, setTheme }) {
               <Home size={18} />
               Home
             </li>
-            <li 
-              className={`nav-item ${activeTab === 'home-2' ? 'active' : ''}`}
-              onClick={() => setActiveTab('home-2')}
-            >
-              <Home size={18} />
-              Home V2
-            </li>
+
             <li 
               className={`nav-item ${activeTab === 'my-cheatsheets' ? 'active' : ''}`}
               onClick={() => setActiveTab('my-cheatsheets')}
