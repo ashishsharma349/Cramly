@@ -2,6 +2,26 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/programming",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/science",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/mathematics",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/cheatsheets/:slug",
+      "destination": "/api/proxy"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/proxy"
     },
