@@ -97,7 +97,8 @@ export default function App() {
       setIsModalOpen(true)
     } else {
       try {
-        const fullJob = await getJobStatus(job.jobId)
+        const jobId = job.jobId || job._id
+        const fullJob = await getJobStatus(jobId)
         setPreviewJob(fullJob)
         setIsModalOpen(true)
       } catch (err) {
@@ -125,6 +126,7 @@ export default function App() {
               if (exist) return prev
               const newJob = {
                 jobId: statusData.jobId,
+                status: 'done',
                 topic: statusData.cheatsheetJSON?.topic || activeJob?.topic || 'Untitled',
                 subject: statusData.cheatsheetJSON?.subject || activeJob?.subject || 'General',
                 level: statusData.cheatsheetJSON?.level || activeJob?.level || 'School',
