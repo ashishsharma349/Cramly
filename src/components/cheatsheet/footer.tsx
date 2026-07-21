@@ -19,10 +19,17 @@ export function Footer({ onNavigate }: { onNavigate?: (id: string) => void }) {
           </div>
 
           {/* Center - Links */}
-          <div className="flex items-center gap-8 text-sm">
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('about'); }} className="text-muted-foreground hover:text-foreground transition-colors">About</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('contact'); }} className="text-muted-foreground hover:text-foreground transition-colors">Contact</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('tos'); }} className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
+          <div className="flex flex-col md:flex-row items-center gap-6 text-sm">
+            <div className="flex gap-4">
+              <a href="/programming" className="text-muted-foreground hover:text-foreground transition-colors">Programming</a>
+              <a href="/science" className="text-muted-foreground hover:text-foreground transition-colors">Science</a>
+              <a href="/mathematics" className="text-muted-foreground hover:text-foreground transition-colors">Mathematics</a>
+            </div>
+            <div className="flex gap-4">
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('about'); }} className="text-muted-foreground hover:text-foreground transition-colors">About</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('contact'); }} className="text-muted-foreground hover:text-foreground transition-colors">Contact</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigate?.('tos'); }} className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a>
+            </div>
           </div>
 
           {/* Right - Social */}

@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /cheatsheets/
 
 # Block access to API routes (even though they are serverless functions)
 Disallow: /api/
