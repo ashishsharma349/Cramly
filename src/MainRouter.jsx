@@ -30,6 +30,42 @@ export function MainRouter() {
           />
         } 
       />
+      <Route 
+        path="/math" 
+        element={
+          <NichePage 
+            seoTitle="Cramly — AI Cheatsheet Generator for Mathematics & Formulas"
+            seoDescription="Generate concise, accurate math cheatsheets for Calculus, Algebra, Geometry, Statistics, and core formulas instantly."
+            heroTitle="Master Mathematics —"
+            heroSubtitle="Formulas, Theorems & Step-by-Step Rules."
+            heroDescription="Generate concise, structured formula and concept cheat sheets for Calculus, Algebra, Geometry, and Statistics."
+          />
+        } 
+      />
+      <Route 
+        path="/history" 
+        element={
+          <NichePage 
+            seoTitle="Cramly — AI Cheatsheet Generator for History & Social Studies"
+            seoDescription="Generate accurate history cheatsheets for World Wars, Empires, Civilizations, and key historical events."
+            heroTitle="Master History —"
+            heroSubtitle="Timelines, Wars & Civilizations."
+            heroDescription="Generate structured cheat sheets for historical events, empires, wars, and key historical timelines."
+          />
+        } 
+      />
+      <Route 
+        path="/geography" 
+        element={
+          <NichePage 
+            seoTitle="Cramly — AI Cheatsheet Generator for Geography & Earth Sciences"
+            seoDescription="Generate concise geography cheatsheets for Physical Geography, Climatology, Map Reading, and Urban Geography."
+            heroTitle="Master Geography —"
+            heroSubtitle="Landforms, Climate & Spatial Science."
+            heroDescription="Generate concise cheat sheets for physical landforms, climate zones, cartography, and human geography."
+          />
+        } 
+      />
     </Routes>
   )
 }
