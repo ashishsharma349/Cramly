@@ -41,6 +41,30 @@ export async function getJobStatus(jobId, isAuthUser = false) {
   return response.json();
 }
 
+// Opens a 1-way Server-Sent Events (SSE) stream for real-time progress updates.
+export function subscribeJobStream(jobId, onMessage, onError) {
+  const url = `${API_BASE_URL}/jobs/${jobId}/stream`;
+  const eventSource = new EventSource(url, { withCredentials: true });
+
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      onMessage(data);
+    } catch (err) {
+      console.error('Failed to parse SSE event payload:', err);
+    }
+  };
+
+  eventSource.onerror = (err) => {
+    eventSource.close();
+    if (onError) onError(err);
+  };
+
+  return () => {
+    eventSource.close();
+  };
+}
+
 // Fetches a list of recent cheatsheet generation jobs.
 export async function getRecentJobs(isAuthUser = false) {
   const response = await fetch(`${API_BASE_URL}/jobs`, {

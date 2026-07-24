@@ -19,6 +19,7 @@ import { Hero } from './components/cheatsheet/hero'
 import { GeneratorForm } from './components/cheatsheet/generator-form'
 import { RecentCheatsheets } from './components/cheatsheet/recent-cheatsheets'
 import { PreviewModal } from './components/cheatsheet/preview-modal'
+import { LiveA4Modal } from './components/cheatsheet/live-a4-modal'
 import { StatusPoller } from './components/cheatsheet/status-poller'
 import { Button } from './components/ui/button'
 import { HomePage } from './components/cheatsheet/home-page'
@@ -35,6 +36,7 @@ import {
   getJobStatus,
   getRecentJobs,
   deleteJob,
+  subscribeJobStream,
 } from './api/client.js'
 
 const NAV = [
@@ -75,7 +77,9 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [toast, setToast] = useState(null)
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false)
-  const pollTimerRef = useRef(null)
+  const unsubscribeStreamRef = useRef(null)
+  const [liveA4Job, setLiveA4Job] = useState(null)
+  const [isLiveA4ModalOpen, setIsLiveA4ModalOpen] = useState(false)
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
@@ -91,45 +95,124 @@ export default function App() {
   }
 
   const handleOpenPreview = async (job) => {
+    const jobId = job.jobId || job._id
     if (job.cheatsheetJSON) {
-      setPreviewJob(job)
-      setIsModalOpen(true)
-    } else {
+      setLiveA4Job({
+        jobId,
+        topic: job.topic || job.cheatsheetJSON.title,
+        subject: job.subject,
+        level: job.level,
+        status: 'done',
+        stageLabel: 'Generation Complete',
+        cheatsheetJSON: job.cheatsheetJSON,
+        pdfUrl: job.downloadUrl || job.fileUrl || `/uploads/${jobId}.pdf`
+      })
+      setIsLiveA4ModalOpen(true)
+    } else if (jobId) {
       try {
-        const jobId = job.jobId || job._id
         const fullJob = await getJobStatus(jobId)
-        setPreviewJob(fullJob)
-        setIsModalOpen(true)
+        setLiveA4Job({
+          jobId,
+          topic: fullJob.topic || fullJob.cheatsheetJSON?.title,
+          subject: fullJob.subject,
+          level: fullJob.level,
+          status: fullJob.status,
+          stageLabel: fullJob.status === 'done' ? 'Generation Complete' : 'In Progress',
+          cheatsheetJSON: fullJob.cheatsheetJSON,
+          pdfUrl: fullJob.fileUrl || `/uploads/${jobId}.pdf`
+        })
+        setIsLiveA4ModalOpen(true)
       } catch (err) {
         showToast('Failed to load cheatsheet preview.', 'error')
       }
     }
   }
 
-  const startPolling = (jobId) => {
+  const startJobStream = (jobId, initialFormData) => {
     setIsGenerating(true)
-    if (pollTimerRef.current) clearInterval(pollTimerRef.current)
+    if (unsubscribeStreamRef.current) {
+      unsubscribeStreamRef.current()
+      unsubscribeStreamRef.current = null
+    }
 
-    pollTimerRef.current = setInterval(async () => {
-      try {
-        const statusData = await getJobStatus(jobId)
-        setActiveJob(statusData)
+    const unsubscribe = subscribeJobStream(
+      jobId,
+      (eventData) => {
+        const label = eventData.label || eventData.progressStage
 
-        if (statusData.status === 'done') {
-          clearInterval(pollTimerRef.current)
-          setActiveJob(null)
+        setActiveJob((prev) => ({
+          ...(prev || {}),
+          ...initialFormData,
+          jobId,
+          stageLabel: label || prev?.stageLabel || 'Processing...'
+        }))
+
+        setLiveA4Job((prev) => {
+          if (!prev) return null
+          const updated = { ...prev, jobId }
+
+          if (label) {
+            updated.stageLabel = label
+          }
+
+          if (eventData.outlineHeadings && eventData.outlineHeadings.length > 0) {
+            if (!updated.sections || updated.sections.length === 0) {
+              updated.sections = eventData.outlineHeadings.map((h, i) => ({
+                index: i,
+                heading: h,
+                status: 'skeleton'
+              }))
+            }
+          }
+
+          if (eventData.stage === 'section_completed' && eventData.section) {
+            const nextSections = [...(updated.sections || [])]
+            const idx = typeof eventData.sectionIndex === 'number'
+              ? eventData.sectionIndex
+              : nextSections.findIndex((s) => s.heading === eventData.section.name)
+
+            if (idx !== -1) {
+              nextSections[idx] = {
+                index: idx,
+                heading: eventData.section.name || nextSections[idx]?.heading,
+                status: 'done',
+                description: eventData.section.description
+              }
+            }
+            updated.sections = nextSections
+          }
+
+          if (eventData.stage === 'done') {
+            updated.status = 'done'
+            updated.stageLabel = 'Generation Complete!'
+            if (eventData.fileUrl) {
+              updated.pdfUrl = eventData.fileUrl
+            }
+            if (eventData.cheatsheetJSON) {
+              updated.cheatsheetJSON = eventData.cheatsheetJSON
+            }
+          }
+
+          return updated
+        })
+
+        if (eventData.stage === 'done') {
+          if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
           setIsGenerating(false)
+          setActiveJob(null)
+
           if (!user) {
             setGuestJobs((prev) => {
-              const exist = prev.some((j) => j.jobId === statusData.jobId)
+              const exist = prev.some((j) => j.jobId === jobId)
               if (exist) return prev
               const newJob = {
-                jobId: statusData.jobId,
+                jobId,
                 status: 'done',
-                topic: statusData.cheatsheetJSON?.topic || activeJob?.topic || 'Untitled',
-                subject: statusData.cheatsheetJSON?.subject || activeJob?.subject || 'General',
-                level: statusData.cheatsheetJSON?.level || activeJob?.level || 'School',
-                createdAt: new Date().toISOString()
+                topic: eventData.cheatsheetJSON?.title || initialFormData?.topic || 'Untitled',
+                subject: initialFormData?.subject || 'General',
+                level: initialFormData?.level || 'School',
+                createdAt: new Date().toISOString(),
+                fileUrl: eventData.fileUrl
               }
               const updated = [newJob, ...prev].slice(0, 5)
               localStorage.setItem('cramly_guest_jobs', JSON.stringify(updated))
@@ -138,31 +221,57 @@ export default function App() {
           }
           refetchJobs()
           refreshUser()
-          showToast('PDF generated successfully!')
-          handleOpenPreview(statusData)
-        } else if (statusData.status === 'error') {
-          clearInterval(pollTimerRef.current)
-          setActiveJob(null)
+          showToast('Cheatsheet generated successfully!')
+        } else if (eventData.stage === 'error') {
+          if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
           setIsGenerating(false)
+          setActiveJob(null)
           refetchJobs()
           refreshUser()
-          showToast(`Generation error: ${statusData.errorMessage || 'Unknown error occurred.'}`, 'error')
+          showToast(`Generation error: ${eventData.errorMessage || 'Unknown error occurred.'}`, 'error')
         }
-      } catch (err) {
-        console.error(err)
+      },
+      async () => {
+        try {
+          const statusData = await getJobStatus(jobId)
+          if (statusData.status === 'done') {
+            if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
+            setIsGenerating(false)
+            setActiveJob(null)
+            refetchJobs()
+            refreshUser()
+          }
+        } catch (e) {}
       }
-    }, 2000)
+    )
+
+    unsubscribeStreamRef.current = unsubscribe
   }
 
   const handleGenerateSubmit = async (formData) => {
+    if (isGenerating) return
     try {
       setIsGenerating(true)
-      setActiveJob({ topic: formData.topic, level: formData.level, subject: formData.subject, attempts: 0, status: 'pending' })
+      const initialJob = {
+        jobId: 'pending',
+        topic: formData.topic,
+        subject: formData.subject,
+        level: formData.level,
+        status: 'generating',
+        stageLabel: '1. Structuring Level & Domain Curriculum...',
+        sections: []
+      }
+      setActiveJob(initialJob)
+      setLiveA4Job(initialJob)
+      setIsLiveA4ModalOpen(true)
+
       const response = await generateCheatsheet(formData)
-      startPolling(response.jobId)
+      startJobStream(response.jobId, formData)
     } catch (err) {
       setActiveJob(null)
+      setLiveA4Job(null)
       setIsGenerating(false)
+      setIsLiveA4ModalOpen(false)
       if (err.code === 'QUOTA_EXCEEDED' || err.code === 'GUEST_LIMIT_REACHED') {
         setIsQuotaModalOpen(true)
       } else {
@@ -200,7 +309,7 @@ export default function App() {
 
   useEffect(() => {
     return () => {
-      if (pollTimerRef.current) clearInterval(pollTimerRef.current)
+      if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
     }
   }, [])
 
@@ -277,7 +386,7 @@ export default function App() {
               {activeTab === 'generate' && (
                 <>
                   <Hero />
-                  <StatusPoller currentJob={activeJob} />
+                  <StatusPoller currentJob={activeJob} onOpenCanvas={() => setIsLiveA4ModalOpen(true)} />
                   <GeneratorForm onSubmit={handleGenerateSubmit} isGenerating={isGenerating} />
                   <RecentCheatsheets
                     jobs={displayJobs.slice(0, 3)}
@@ -384,6 +493,13 @@ export default function App() {
           onLogout={logout}
         />
       )}
+
+      <LiveA4Modal
+        isOpen={isLiveA4ModalOpen}
+        job={liveA4Job}
+        isGenerating={isGenerating}
+        onClose={() => setIsLiveA4ModalOpen(false)}
+      />
 
       <PreviewModal
         isOpen={isModalOpen}
