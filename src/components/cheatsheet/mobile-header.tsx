@@ -18,7 +18,7 @@ export function MobileHeader({ onMenu }: MobileHeaderProps) {
           <Menu className="size-5" />
         </button>
         <img
-          src="/bear-logo.png"
+          src="/bear-logo-removebg-preview.png"
           alt="Cramly logo"
           className="size-9 object-contain"
         />

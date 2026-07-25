@@ -44,7 +44,7 @@ export function Sidebar({
     <aside className="hidden w-72 shrink-0 flex-col border-r border-border/40 bg-sidebar p-6 lg:flex">
       <div className="flex items-center gap-2 -ml-2 mb-2">
         <img
-          src="/bear-logo.png"
+          src="/bear-logo-removebg-preview.png"
           alt="Cramly logo"
           className="size-24 object-contain scale-110"
         />
