@@ -11,6 +11,7 @@ import {
   X,
   CheckCircle,
 } from 'lucide-react'
+import { Toaster, toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Sidebar } from './components/cheatsheet/sidebar'
 import { MobileHeader } from './components/cheatsheet/mobile-header'
@@ -74,11 +75,48 @@ export default function App() {
   })
   const [activeJob, setActiveJob] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [toast, setToast] = useState(null)
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false)
   const unsubscribeStreamRef = useRef(null)
   const [liveA4Job, setLiveA4Job] = useState(null)
   const [isLiveA4ModalOpen, setIsLiveA4ModalOpen] = useState(false)
+
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cramly_favorite_jobs')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  const handleToggleFavorite = (targetJob) => {
+    if (!targetJob) return
+    const id = targetJob.jobId || targetJob._id
+    if (!id) return
+
+    setFavorites((prev) => {
+      const exists = prev.some((f) => (f.jobId || f._id) === id)
+      let updated
+      if (exists) {
+        updated = prev.filter((f) => (f.jobId || f._id) !== id)
+        toast.info('Removed from Favorites')
+      } else {
+        const itemToSave = {
+          jobId: id,
+          topic: targetJob.topic || targetJob.cheatsheetJSON?.title || 'Cheatsheet',
+          subject: targetJob.subject || 'General',
+          level: targetJob.level || 'School',
+          createdAt: targetJob.createdAt || new Date().toISOString(),
+          cheatsheetJSON: targetJob.cheatsheetJSON,
+          fileUrl: targetJob.fileUrl || targetJob.pdfUrl
+        }
+        updated = [itemToSave, ...prev]
+        toast.success('Added to Favorites!')
+      }
+      localStorage.setItem('cramly_favorite_jobs', JSON.stringify(updated))
+      return updated
+    })
+  }
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
@@ -86,11 +124,6 @@ export default function App() {
 
   const triggerHowItWorks = () => {
     setIsHowItWorksOpen(true)
-  }
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 5000)
   }
 
   const handleOpenPreview = async (job) => {
@@ -122,7 +155,7 @@ export default function App() {
         })
         setIsLiveA4ModalOpen(true)
       } catch (err) {
-        showToast('Failed to load cheatsheet preview.', 'error')
+        toast.error('Failed to load cheatsheet preview.')
       }
     }
   }
@@ -220,27 +253,63 @@ export default function App() {
           }
           refetchJobs()
           refreshUser()
-          showToast('Cheatsheet generated successfully!')
+          toast.success('Cheatsheet generated successfully!')
         } else if (eventData.stage === 'error') {
           if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
           setIsGenerating(false)
           setActiveJob(null)
+          setLiveA4Job((prev) => prev ? { ...prev, status: 'error', stageLabel: 'Generation Failed', errorMessage: eventData.errorMessage } : null)
           refetchJobs()
           refreshUser()
-          showToast(`Generation error: ${eventData.errorMessage || 'Unknown error occurred.'}`, 'error')
+          toast.error(`Generation error: ${eventData.errorMessage || 'Unknown error occurred.'}`)
         }
       },
       async () => {
-        try {
-          const statusData = await getJobStatus(jobId)
-          if (statusData.status === 'done') {
-            if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
-            setIsGenerating(false)
-            setActiveJob(null)
-            refetchJobs()
-            refreshUser()
+        let attempt = 0;
+        const getDelay = (a) => {
+          if (a === 0) return 3000;
+          if (a === 1) return 5000;
+          if (a === 2) return 8000;
+          return 15000;
+        };
+
+        while (attempt < 12) {
+          const reconnectMsg = `Reconnecting... (Attempt ${attempt + 1} of 12)`
+          setActiveJob(prev => prev ? { ...prev, stageLabel: reconnectMsg } : null)
+          setLiveA4Job(prev => prev ? { ...prev, stageLabel: reconnectMsg } : null)
+
+          try {
+            const statusData = await getJobStatus(jobId)
+            if (statusData.status === 'done') {
+              if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
+              setIsGenerating(false)
+              setActiveJob(null)
+              refetchJobs()
+              refreshUser()
+              return
+            } else if (statusData.status === 'error') {
+              break;
+            }
+          } catch (e) {
+            console.error('Recovery polling attempt failed:', e)
           }
-        } catch (e) {}
+          await new Promise(resolve => setTimeout(resolve, getDelay(attempt)))
+          attempt++;
+        }
+        
+        // If recovery fails or returns non-done, we must surface the connection error
+        if (unsubscribeStreamRef.current) unsubscribeStreamRef.current()
+        setIsGenerating(false)
+        setActiveJob(null)
+        setLiveA4Job((prev) => prev ? { 
+          ...prev, 
+          status: 'error', 
+          stageLabel: 'Connection Lost', 
+          errorMessage: 'The connection to the server was lost and recovery failed.' 
+        } : null)
+        refetchJobs()
+        refreshUser()
+        toast.error('Connection lost during generation.')
       }
     )
 
@@ -274,32 +343,39 @@ export default function App() {
       if (err.code === 'QUOTA_EXCEEDED' || err.code === 'GUEST_LIMIT_REACHED') {
         setIsQuotaModalOpen(true)
       } else {
-        alert(`Failed to start generation: ${err.message}`)
+        toast.error(`Failed to start generation: ${err.message}`)
       }
     }
   }
 
-  const handleDeleteJob = async (jobId) => {
-    if (!window.confirm('Are you sure you want to delete this cheatsheet?')) {
-      return
-    }
+  const handleDeleteJob = (jobId) => {
+    toast('Are you sure you want to delete this cheatsheet?', {
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          if (!user) {
+            setGuestJobs((prev) => {
+              const updated = prev.filter((j) => j.jobId !== jobId)
+              localStorage.setItem('cramly_guest_jobs', JSON.stringify(updated))
+              return updated
+            })
+            toast.success('Cheatsheet removed from local history.')
+            return
+          }
 
-    if (!user) {
-      setGuestJobs((prev) => {
-        const updated = prev.filter((j) => j.jobId !== jobId)
-        localStorage.setItem('cramly_guest_jobs', JSON.stringify(updated))
-        return updated
-      })
-      showToast('Cheatsheet removed from local history.')
-      return
-    }
-
-    try {
-      await deleteJob(jobId)
-      queryClient.invalidateQueries({ queryKey: ['recentJobs'] })
-    } catch (err) {
-      alert(`Failed to delete cheatsheet: ${err.message}`)
-    }
+          try {
+            await deleteJob(jobId)
+            queryClient.invalidateQueries({ queryKey: ['recentJobs'] })
+            toast.success('Cheatsheet deleted successfully.')
+          } catch (err) {
+            toast.error(`Failed to delete cheatsheet: ${err.message}`)
+          }
+        }
+      },
+      cancel: {
+        label: 'Cancel',
+      },
+    })
   }
 
   useEffect(() => {
@@ -332,16 +408,23 @@ export default function App() {
   const isGuest = !user
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar
-        active={activeTab}
-        onNavigate={(id) => setActiveTab(id)}
-        dark={theme === 'dark'}
-        onToggleTheme={toggleTheme}
-        onAuthClick={() => setShowAuth(true)}
-        user={user}
-        onLogout={logout}
+    <div className="flex min-h-screen bg-[#FAFAF8] text-slate-900 relative overflow-x-hidden">
+      {/* Subtle notes texture overlay at page edges (11% opacity) */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center opacity-[0.11] pointer-events-none mix-blend-multiply z-0"
+        style={{ backgroundImage: "url('/drowning-notes-bg.png')" }}
       />
+      {activeTab !== 'home' && (
+        <Sidebar
+          active={activeTab}
+          onNavigate={(id) => setActiveTab(id)}
+          dark={theme === 'dark'}
+          onToggleTheme={toggleTheme}
+          onAuthClick={() => setShowAuth(true)}
+          user={user}
+          onLogout={logout}
+        />
+      )}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         {activeTab === 'home' ? (
@@ -367,13 +450,13 @@ export default function App() {
           <>
             <MobileHeader onMenu={() => setMobileDrawerOpen(true)} />
 
-            <div className="hidden items-center justify-end gap-3 px-8 pt-6 lg:flex">
+            <div className="hidden items-center justify-end gap-3 px-8 pt-6 lg:flex relative z-10">
               <button
                 type="button"
                 onClick={triggerHowItWorks}
-                className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
               >
-                <Play className="size-4 text-primary fill-current" />
+                <Play className="size-3.5 text-slate-800 fill-slate-800" />
                 How it works
               </button>
               <div className="flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground font-bold text-sm">
@@ -389,9 +472,11 @@ export default function App() {
                   <GeneratorForm onSubmit={handleGenerateSubmit} isGenerating={isGenerating} />
                   <RecentCheatsheets
                     jobs={displayJobs.slice(0, 3)}
+                    favorites={favorites}
                     isGuest={isGuest}
                     onPreview={handleOpenPreview}
                     onDelete={handleDeleteJob}
+                    onToggleFavorite={handleToggleFavorite}
                     onViewAllClick={() => setActiveTab('cheatsheets')}
                   />
                 </>
@@ -399,71 +484,132 @@ export default function App() {
 
           {activeTab === 'cheatsheets' && (
             <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-heading font-bold tracking-tight text-foreground">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                   My Cheatsheets
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Manage and access your generated cheatsheets.
                 </p>
               </div>
               <RecentCheatsheets
                 jobs={displayJobs}
+                favorites={favorites}
                 isGuest={isGuest}
                 onPreview={handleOpenPreview}
                 onDelete={handleDeleteJob}
+                onToggleFavorite={handleToggleFavorite}
               />
             </div>
           )}
 
           {activeTab === 'favorites' && (
-            <div className="py-20 text-center text-muted-foreground flex flex-col items-center justify-center">
-              <div className="text-primary flex justify-center mb-4 bg-primary/10 p-4 rounded-full">
-                <Star className="size-10" />
+            <div className="space-y-6">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Favorites
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Quick access to your starred cheatsheets.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                No Favorites Yet
-              </h3>
-              <p className="text-sm max-w-sm">
-                Star your favorite cheatsheets from the preview modal to access them instantly here.
-              </p>
+
+              {favorites.length > 0 ? (
+                <RecentCheatsheets
+                  jobs={favorites}
+                  favorites={favorites}
+                  isGuest={isGuest}
+                  onPreview={handleOpenPreview}
+                  onDelete={handleDeleteJob}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              ) : (
+                <div className="rounded-2xl border border-slate-200/90 bg-white p-8 sm:p-12 shadow-sm text-center flex flex-col items-center justify-center">
+                  <div className="size-14 rounded-2xl bg-red-50 text-[#FF4D4D] flex items-center justify-center mb-4">
+                    <Star className="size-7 stroke-[2]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1">
+                    No Favorites Saved Yet
+                  </h3>
+                  <p className="text-sm text-slate-500 max-w-sm mb-6 leading-relaxed">
+                    Star your favorite cheatsheets from the preview modal or cheatsheet list to access them instantly here.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('generate')}
+                    className="rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white font-semibold px-5 py-2.5 text-sm shadow-sm transition-all flex items-center gap-2"
+                  >
+                    <Wand2 className="size-4" />
+                    Generate a Cheatsheet
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'profile' && (
-            <div className="space-y-6 max-w-2xl">
-              <h2 className="text-3xl font-heading font-bold tracking-tight text-foreground">
-                User Profile
-              </h2>
-              <div className="bg-card p-6 rounded-3xl border border-border flex items-center gap-5">
-                <div className="size-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold">
-                  {user ? user.name.charAt(0).toUpperCase() : 'G'}
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-foreground">{user ? user.name : 'Guest User'}</h4>
-                  <p className="text-sm text-muted-foreground">{user ? user.email : 'guest@cheatsheetgenerator.com'}</p>
-                </div>
+            <div className="space-y-6 max-w-3xl">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                  User Profile
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Manage your account details and view usage statistics.
+                </p>
               </div>
 
-              <div className="bg-card p-6 rounded-3xl border border-border space-y-3">
-                <h4 className="font-bold text-foreground">Usage Statistics</h4>
-                <p className="text-sm text-muted-foreground">
-                  Free Cheatsheets Remaining: <strong className={user && user.freeCheatsheetsRemaining === 0 ? "text-rose-500 font-bold" : "text-foreground font-bold"}>
-                    {user ? user.freeCheatsheetsRemaining : '1 (Guest Limit)'}
-                  </strong>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Status:{' '}
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                    Active
-                  </span>
-                </p>
-                {user && (
-                  <button onClick={logout} className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-secondary transition-colors">
+              {/* User Details Card */}
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div className="flex items-center gap-4">
+                  <div className="size-14 rounded-2xl bg-red-50 text-[#FF4D4D] flex items-center justify-center text-xl font-bold shrink-0">
+                    {user ? user.name.charAt(0).toUpperCase() : 'G'}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900">{user ? user.name : 'Guest User'}</h4>
+                    <p className="text-sm text-slate-500">{user ? user.email : 'guest@cheatsheetgenerator.com'}</p>
+                  </div>
+                </div>
+                {!user ? (
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white font-semibold px-4 py-2 text-sm shadow-sm transition-all shrink-0"
+                  >
+                    Sign Up / Log In
+                  </button>
+                ) : (
+                  <button
+                    onClick={logout}
+                    className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold px-4 py-2 text-sm transition-colors flex items-center gap-2 shrink-0"
+                  >
                     <LogOut className="size-4" />
                     Log Out
                   </button>
                 )}
+              </div>
+
+              {/* Usage Statistics Card */}
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
+                <h4 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+                  Usage Statistics
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+                    <span className="text-xs font-semibold text-slate-500 block mb-1">
+                      Free Cheatsheets Remaining
+                    </span>
+                    <span className={cn("text-2xl font-extrabold", user && user.freeCheatsheetsRemaining === 0 ? "text-red-500" : "text-slate-900")}>
+                      {user ? user.freeCheatsheetsRemaining : '1 (Guest Limit)'}
+                    </span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+                    <span className="text-xs font-semibold text-slate-500 block mb-1">
+                      Account Status
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full mt-1">
+                      <span className="size-1.5 rounded-full bg-emerald-500" />
+                      Active
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -498,6 +644,8 @@ export default function App() {
         job={liveA4Job}
         isGenerating={isGenerating}
         onClose={() => setIsLiveA4ModalOpen(false)}
+        isFavorite={Boolean(liveA4Job && favorites.some((f) => (f.jobId || f._id) === (liveA4Job.jobId || liveA4Job._id)))}
+        onToggleFavorite={() => liveA4Job && handleToggleFavorite(liveA4Job)}
       />
 
       <PreviewModal
@@ -520,27 +668,7 @@ export default function App() {
         user={user}
       />
 
-      {toast && (
-        <div className="toast-notification" style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          backgroundColor: toast.type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)',
-          color: 'white',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '14px',
-          fontWeight: 500,
-          zIndex: 1000
-        }}>
-          {toast.type === 'success' ? <CheckCircle size={18} /> : <X size={18} />}
-          <span>{toast.message}</span>
-        </div>
-      )}
+      <Toaster position="bottom-right" richColors />
     </div>
   )
 }
@@ -550,8 +678,6 @@ function MobileDrawer({
   active,
   onNavigate,
   onClose,
-  dark,
-  onToggleTheme,
   onAuthClick,
   user,
   onLogout
@@ -559,21 +685,20 @@ function MobileDrawer({
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       <div
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="absolute top-0 left-0 flex h-full w-72 flex-col bg-sidebar p-6 shadow-xl border-r border-sidebar-border">
+      <div className="absolute top-0 left-0 flex h-full w-72 flex-col bg-white p-6 shadow-xl border-r border-slate-200">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight">
-            <span className="text-foreground">CheatSheet</span>{' '}
-            <span className="text-primary">Generator</span>
+          <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+            Cramly
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-secondary"
+            className="flex size-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <X className="size-5" />
           </button>
@@ -590,8 +715,8 @@ function MobileDrawer({
                 className={cn(
                   'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                    ? 'bg-red-50 text-[#FF4D4D] font-semibold'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
                 )}
               >
                 <item.icon className="size-5" />
@@ -602,78 +727,60 @@ function MobileDrawer({
         </nav>
 
         {!user ? (
-          <Button className="mt-6 w-full rounded-xl" onClick={onAuthClick}>Sign Up / Log In</Button>
+          <button
+            onClick={onAuthClick}
+            className="mt-6 w-full rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white font-semibold py-3 text-sm shadow-sm transition-all"
+          >
+            Sign Up / Log In
+          </button>
         ) : (
-          <div className="mt-6">
-            <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="mt-6 space-y-2">
+            <div className="px-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
               Account
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-background/50 p-3 border border-border">
-              <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+            <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 border border-slate-200/80">
+              <div className="size-8 rounded-full bg-red-50 text-[#FF4D4D] flex items-center justify-center font-bold text-sm border border-red-100">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-semibold">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">Quota: <strong className={user.freeCheatsheetsRemaining === 0 ? "text-rose-500" : ""}>{user.freeCheatsheetsRemaining} left</strong></p>
+                <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+                <p className="truncate text-xs text-slate-500">
+                  Quota: <strong className={user.freeCheatsheetsRemaining === 0 ? "text-red-500 font-bold" : "text-slate-700 font-bold"}>{user.freeCheatsheetsRemaining} left</strong>
+                </p>
               </div>
             </div>
-            <button onClick={onLogout} className="w-full mt-2 rounded-xl py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors border border-border flex items-center justify-center gap-2">
+            <button
+              onClick={onLogout}
+              className="w-full rounded-xl py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200 flex items-center justify-center gap-2"
+            >
               <LogOut className="size-4" />
               Log Out
             </button>
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={onToggleTheme}
-          className="mt-auto flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-medium"
-        >
-          <span className="flex items-center gap-2">
-            {dark ? (
-              <Moon className="size-4 text-primary" />
-            ) : (
-              <Sun className="size-4 text-primary" />
-            )}
-            {dark ? 'Dark Mode' : 'Light Mode'}
-          </span>
-          <span
-            className={cn(
-              'relative h-6 w-11 rounded-full transition-colors',
-              dark ? 'bg-primary' : 'bg-primary/40',
-            )}
-          >
-            <span
-              className={cn(
-                'absolute top-0.5 size-5 rounded-full bg-card shadow transition-transform',
-                dark ? 'translate-x-5' : 'translate-x-0.5',
-              )}
-            />
-          </span>
-        </button>
       </div>
     </div>
   )
 }
 
-// Renders the step-by-step how-it-works instruction guide in a custom modal.
+// Renders the step-by-step how-it-works instruction guide in a custom modal
 function HowItWorksModal({ onClose }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md flex flex-col rounded-3xl border border-border bg-card p-6 shadow-xl space-y-6"
+        className="relative w-full max-w-md flex flex-col rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xl space-y-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-foreground">How it works</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-xl font-extrabold text-slate-900">How it works</h3>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close guide"
-            className="flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="flex size-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
           >
             <X className="size-5" />
           </button>
@@ -681,48 +788,48 @@ function HowItWorksModal({ onClose }) {
 
         <div className="space-y-4">
           <div className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-[#FF4D4D] border border-red-100">
               1
             </span>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Type your topic</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h4 className="text-sm font-bold text-slate-900">Type your topic</h4>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Enter any programming language, tool, or domain topic you want to learn.
               </p>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-[#FF4D4D] border border-red-100">
               2
             </span>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Select category & level</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h4 className="text-sm font-bold text-slate-900">Select category & level</h4>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Choose a subject category and set the target depth level (School, College, or Expert).
               </p>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-[#FF4D4D] border border-red-100">
               3
             </span>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Generate cheatsheet</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h4 className="text-sm font-bold text-slate-900">Generate cheatsheet</h4>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Click generate. Our background worker queries Gemini to compile optimal code snippets and concepts.
               </p>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-[#FF4D4D] border border-red-100">
               4
             </span>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Preview or download PDF</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <h4 className="text-sm font-bold text-slate-900">Preview or download PDF</h4>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Open the interactive preview modal to copy code snippets, or download the print-ready PDF instantly.
               </p>
             </div>
@@ -732,7 +839,7 @@ function HowItWorksModal({ onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="w-full rounded-xl bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors"
+          className="w-full rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white py-3 text-sm font-semibold shadow-md shadow-red-500/20 transition-all"
         >
           Got it
         </button>

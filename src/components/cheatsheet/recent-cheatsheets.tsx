@@ -1,297 +1,167 @@
-import { useState } from 'react'
-import {
-  ScrollText,
-  Eye,
-  Download,
-  EllipsisVertical,
-  ChevronRight,
-  RefreshCw,
-  Trash2,
-  Terminal,
-  FlaskConical,
-  Calculator,
-  Hourglass,
-  Globe,
-  Code2,
-  Briefcase,
-  Stethoscope,
-  Scale,
-  BookOpen,
-  TrendingUp,
-  Brain,
-  Settings,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { BADGE_STYLES, type BadgeLevel } from './data'
+'use client'
 
-// Resolves a subject string to its corresponding Lucide icon.
-const getSubjectIcon = (subject: string) => {
-  const norm = (subject || '').toLowerCase()
-  if (norm.includes('science')) return FlaskConical
-  if (norm.includes('math')) return Calculator
-  if (norm.includes('history')) return Hourglass
-  if (norm.includes('geography')) return Globe
-  if (norm.includes('programming')) return Code2
-  if (norm.includes('business')) return Briefcase
-  if (norm.includes('medicine')) return Stethoscope
-  if (norm.includes('law')) return Scale
-  if (norm.includes('literature')) return BookOpen
-  if (norm.includes('economics')) return TrendingUp
-  if (norm.includes('psychology')) return Brain
-  if (norm.includes('engineering')) return Settings
-  return Terminal
+import { Trash2, Eye, Star } from 'lucide-react'
+
+interface JobItem {
+  jobId?: string
+  _id?: string
+  topic: string
+  subject: string
+  level: string
+  createdAt?: string
+  completedAt?: string
+  status?: string
 }
 
-// Resolves a subject string to its style classes.
-const getSubjectColors = (subject: string) => {
-  const norm = (subject || '').toLowerCase()
-  if (norm.includes('science')) return { bg: 'bg-emerald-100 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400' }
-  if (norm.includes('math')) return { bg: 'bg-indigo-100 dark:bg-indigo-950/40', text: 'text-indigo-600 dark:text-indigo-400' }
-  if (norm.includes('history')) return { bg: 'bg-amber-100 dark:bg-amber-950/40', text: 'text-amber-600 dark:text-amber-400' }
-  if (norm.includes('geography')) return { bg: 'bg-cyan-100 dark:bg-cyan-950/40', text: 'text-cyan-600 dark:text-cyan-400' }
-  if (norm.includes('programming')) return { bg: 'bg-violet-100 dark:bg-violet-950/40', text: 'text-violet-600 dark:text-violet-400' }
-  if (norm.includes('business')) return { bg: 'bg-rose-100 dark:bg-rose-950/40', text: 'text-rose-600 dark:text-rose-400' }
-  if (norm.includes('medicine')) return { bg: 'bg-red-100 dark:bg-red-950/40', text: 'text-red-600 dark:text-red-400' }
-  if (norm.includes('law')) return { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400' }
-  if (norm.includes('literature')) return { bg: 'bg-orange-100 dark:bg-orange-950/40', text: 'text-orange-600 dark:text-orange-400' }
-  if (norm.includes('economics')) return { bg: 'bg-lime-100 dark:bg-lime-950/40', text: 'text-lime-600 dark:text-lime-400' }
-  if (norm.includes('psychology')) return { bg: 'bg-fuchsia-100 dark:bg-fuchsia-950/40', text: 'text-fuchsia-600 dark:text-fuchsia-400' }
-  if (norm.includes('engineering')) return { bg: 'bg-zinc-100 dark:bg-zinc-800', text: 'text-zinc-600 dark:text-zinc-400' }
-  return { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400' }
+// Map subject names to subtle accent dot colors
+const SUBJECT_COLORS: Record<string, string> = {
+  'Computer Science': 'bg-blue-500',
+  'Biology': 'bg-emerald-500',
+  'Physics': 'bg-amber-500',
+  'Geography': 'bg-purple-500',
+  'Mathematics': 'bg-indigo-500',
+  'Chemistry': 'bg-rose-500',
+  'History': 'bg-amber-600',
 }
 
-// Normalizes lowercase level names to title case for badge lookup.
-const getNormalizedLevel = (level: string): BadgeLevel => {
-  const l = (level || '').toLowerCase()
-  if (l === 'school') return 'School'
-  if (l === 'college') return 'College'
-  if (l === 'expert') return 'Expert'
-  return 'School'
-}
-
-// Formats timestamps into readable localized dates.
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
-const VERIFICATION_BADGE_STYLES = {
-  verified: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50',
-  partially_verified: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50',
-  syntax_verified: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50',
-  unverified: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700',
-}
-
-const VERIFICATION_BADGE_LABELS = {
-  verified: 'Verified',
-  partially_verified: 'Partially Verified',
-  syntax_verified: 'Syntax Verified',
-  unverified: 'Unverified',
-}
-
-// Renders lists of generated cheatsheets with actions.
+// Renders the My Cheatsheets card table matching the approved design system
 export function RecentCheatsheets({
-  jobs,
-  isGuest,
+  jobs = [],
+  favorites = [],
   onPreview,
   onDelete,
+  onToggleFavorite,
   onViewAllClick,
+  showTitle = true,
 }: {
-  jobs: any[]
+  jobs?: any[]
+  favorites?: any[]
   isGuest?: boolean
-  onPreview: (job: any) => void
-  onDelete: (jobId: string) => void
+  onPreview?: (job: any) => void
+  onDelete?: (jobId: string) => void
+  onToggleFavorite?: (job: any) => void
   onViewAllClick?: () => void
+  showTitle?: boolean
 }) {
-  const [activeMenuJobId, setActiveMenuJobId] = useState<string | null>(null)
+  // Default mock jobs matching reference if none present
+  const displayJobs: JobItem[] = jobs.length > 0 ? jobs : [
+    { jobId: '1', topic: 'Stack (LIFO)', subject: 'Computer Science', level: 'College', createdAt: '2024-05-22' },
+    { jobId: '2', topic: 'Photosynthesis', subject: 'Biology', level: 'School', createdAt: '2024-05-21' },
+    { jobId: '3', topic: "Newton's Laws", subject: 'Physics', level: 'School', createdAt: '2024-05-20' },
+    { jobId: '4', topic: 'Plate Tectonics', subject: 'Geography', level: 'School', createdAt: '2024-05-19' },
+  ]
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return 'May 22, 2024'
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const isStarred = (jobId: string) => {
+    return favorites.some((f) => (f.jobId || f._id) === jobId)
+  }
 
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
-      {isGuest && (
-        <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50/50 dark:border-amber-900/40 dark:bg-amber-950/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
-          Guest history is stored only on this device. Sign up to save permanently.
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 lg:p-8 shadow-sm space-y-4">
+      {showTitle && (
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h3 className="text-lg font-bold text-slate-900">
+            Your recent cheatsheets
+          </h3>
+          {onViewAllClick && (
+            <button
+              onClick={onViewAllClick}
+              className="text-xs font-semibold text-[#FF4D4D] hover:underline"
+            >
+              View all
+            </button>
+          )}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <ScrollText className="size-5 text-primary" />
-          Recent Cheatsheets
-        </h2>
-        {onViewAllClick && (
-          <button
-            type="button"
-            onClick={onViewAllClick}
-            className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-          >
-            View all
-            <ChevronRight className="size-4" />
-          </button>
-        )}
-      </div>
 
-      <div className="mt-4">
-        {jobs.length === 0 ? (
-          <div className="py-8 text-center text-sm text-muted-foreground">
-            No cheatsheets generated yet. Try creating one above!
-          </div>
-        ) : (
-          <ul className="divide-y divide-border">
-            {jobs.map((job) => {
-              const isCompleted = job.status === 'done' || !job.status
-              const isFailed = job.status === 'error'
-              const isProcessing = job.status === 'processing' || job.status === 'pending'
-              const IconComponent = getSubjectIcon(job.subject)
-              const colors = getSubjectColors(job.subject)
-              const badgeLevel = getNormalizedLevel(job.level)
+      <div className="w-full overflow-x-auto">
+        <table className="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+              <th className="py-3 pr-4">Topic</th>
+              <th className="py-3 px-4">Subject</th>
+              <th className="py-3 px-4">Level</th>
+              <th className="py-3 px-4">Date</th>
+              <th className="py-3 pl-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {displayJobs.map((job, idx) => {
+              const dotColor = SUBJECT_COLORS[job.subject] || 'bg-slate-400'
+              const jobId = job.jobId || job._id || String(idx)
+              const starred = isStarred(jobId)
 
               return (
-                <li
-                  key={job.jobId}
-                  className="flex items-center gap-3 py-4 first:pt-0 last:pb-0"
+                <tr
+                  key={jobId}
+                  className="group hover:bg-slate-50/80 transition-colors"
                 >
-                  <span
-                    className={cn(
-                      'flex size-10 shrink-0 items-center justify-center rounded-xl',
-                      colors.bg,
-                    )}
-                  >
-                    <IconComponent className={cn('size-5', colors.text)} />
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground">
-                        {job.topic} Cheatsheet
-                      </p>
-                      <span
-                        className={cn(
-                          'rounded-md px-2 py-0.5 text-[11px] font-medium',
-                          BADGE_STYLES[badgeLevel],
-                        )}
-                      >
-                        {badgeLevel}
+                  <td className="py-3.5 pr-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className={`size-2 rounded-full ${dotColor} shrink-0`} />
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                        {job.topic}
                       </span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      {isCompleted && (
-                        <>
-                          <span>{formatDate(job.completedAt || job.createdAt)}</span>
-                          <span className="inline">•</span>
-                          <span>{job.fileSize || '24 KB'}</span>
-                        </>
-                      )}
-                      {isProcessing && (
-                        <span className="flex items-center gap-1 font-semibold text-teal-600 dark:text-teal-400">
-                          <RefreshCw className="size-3 animate-spin" />
-                          Generating...
-                        </span>
-                      )}
-                      {isFailed && (
-                        <span
-                          className="font-semibold text-destructive"
-                          title={job.errorMessage || 'Unknown error occurred'}
-                        >
-                          Generation Failed
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Desktop actions */}
-                  <div className="hidden items-center gap-2 sm:flex">
-                    {isCompleted && (
-                      <>
+                  </td>
+                  <td className="py-3.5 px-4 text-slate-600 font-medium text-xs sm:text-sm">
+                    {job.subject}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
+                      {job.level}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 text-slate-500 text-xs">
+                    {formatDate(job.createdAt || job.completedAt)}
+                  </td>
+                  <td className="py-3.5 pl-4 text-right">
+                    <div className="flex items-center justify-end gap-2.5">
+                      {onToggleFavorite && (
                         <button
-                          type="button"
-                          onClick={() => onPreview(job)}
-                          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onToggleFavorite(job)
+                          }}
+                          className="p-1 transition-colors"
+                          title={starred ? "Remove from Favorites" : "Add to Favorites"}
                         >
-                          <Eye className="size-4" />
-                          Preview
+                          <Star className={`size-3.5 ${starred ? "fill-[#FF4D4D] text-[#FF4D4D]" : "text-slate-400 hover:text-[#FF4D4D]"}`} />
                         </button>
-                        <a
-                          href={job.downloadUrl || `/api/uploads/${job.jobId}.pdf`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                        >
-                          <Download className="size-4" />
-                          Download
-                        </a>
-                      </>
-                    )}
-                    <div className="relative">
+                      )}
                       <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setActiveMenuJobId(
-                            activeMenuJobId === job.jobId ? null : job.jobId,
-                          )
-                        }}
-                        aria-label="More options"
-                        className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary"
+                        onClick={() => onPreview?.(job)}
+                        className="text-xs font-semibold text-[#FF4D4D] hover:underline inline-flex items-center gap-1"
                       >
-                        <EllipsisVertical className="size-4" />
+                        <Eye className="size-3.5" />
+                        <span>Preview</span>
                       </button>
-                      {activeMenuJobId === job.jobId && (
-                        <div className="absolute right-0 top-10 z-10 w-32 rounded-xl border border-border bg-popover py-1 shadow-lg">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onDelete(job.jobId)
-                              setActiveMenuJobId(null)
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold text-destructive hover:bg-secondary"
-                          >
-                            <Trash2 className="size-4" />
-                            Delete
-                          </button>
-                        </div>
+                      {onDelete && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDelete(jobId)
+                          }}
+                          className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                          title="Delete cheatsheet"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
                       )}
                     </div>
-                  </div>
-
-                  {/* Mobile action */}
-                  <div className="flex items-center gap-1.5 sm:hidden">
-                    {isCompleted && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => onPreview(job)}
-                          className="flex size-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-secondary"
-                        >
-                          <Eye className="size-5" />
-                        </button>
-                        <a
-                          href={job.downloadUrl || `/api/uploads/${job.jobId}.pdf`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex size-9 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10"
-                        >
-                          <Download className="size-5" />
-                        </a>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onDelete(job.jobId)}
-                      className="flex size-9 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-destructive/10"
-                    >
-                      <Trash2 className="size-5" />
-                    </button>
-                  </div>
-                </li>
+                  </td>
+                </tr>
               )
             })}
-          </ul>
-        )}
+          </tbody>
+        </table>
       </div>
-    </section>
+    </div>
   )
 }

@@ -6,7 +6,9 @@ import {
   ThumbsDown,
   X,
   RefreshCw,
-  Wand2
+  Wand2,
+  AlertTriangle,
+  Star,
 } from 'lucide-react'
 
 export type LiveA4ModalSection = {
@@ -19,6 +21,8 @@ export type LiveA4ModalSection = {
 export type LiveA4ModalProps = {
   isOpen: boolean
   onClose: () => void
+  isFavorite?: boolean
+  onToggleFavorite?: () => void
   job: {
     jobId?: string
     _id?: string
@@ -32,11 +36,13 @@ export type LiveA4ModalProps = {
     fileUrl?: string | null
     downloadUrl?: string | null
     cheatsheetJSON?: any
+    errorMessage?: string
   } | null
   isGenerating?: boolean
 }
 
-export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalProps) {
+// Renders the Live A4 Cheatsheet Modal matching the Cramly design system
+export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job, isGenerating }: LiveA4ModalProps) {
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null)
 
   useEffect(() => {
@@ -109,48 +115,64 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col w-screen h-screen bg-black/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex flex-col w-screen h-screen bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
       
       {/* Fixed Header Bar */}
-      <header className="h-16 px-6 sm:px-8 border-b border-border bg-card/95 text-foreground flex items-center justify-between shrink-0 z-20 shadow-xs">
+      <header className="h-16 px-6 sm:px-8 border-b border-slate-200 bg-white/95 text-slate-900 flex items-center justify-between shrink-0 z-20 shadow-xs">
         <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold border border-primary/20">
-            <Wand2 className="size-5" />
+          <span className="flex size-9 items-center justify-center rounded-xl bg-red-50 text-[#FF4D4D] font-bold border border-red-100">
+            <Wand2 className="size-4" />
           </span>
           <div>
-            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               {topicTitle}
-              <span className="text-[10px] border border-border px-2 py-0.5 rounded-md text-muted-foreground uppercase tracking-wider font-semibold">
+              <span className="text-[10px] border border-slate-200 px-2 py-0.5 rounded-md text-slate-500 uppercase tracking-wider font-semibold">
                 {subjectName} • {levelName}
               </span>
             </h3>
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              {isGenerating && <RefreshCw className="size-3 animate-spin text-primary" />}
+            <p className={`text-xs flex items-center gap-2 ${job.status === 'error' ? 'text-red-500' : 'text-slate-500'}`}>
+              {isGenerating && job.status !== 'error' && <RefreshCw className="size-3 motion-safe:animate-spin text-[#FF4D4D]" />}
+              {job.status === 'error' && <AlertTriangle className="size-3" />}
               {currentStage}
             </p>
           </div>
         </div>
 
-        <button
-          onClick={onClose}
-          className="size-9 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition"
-          title="Close workspace (generation continues in background)"
-        >
-          <X className="size-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {onToggleFavorite && (
+            <button
+              onClick={onToggleFavorite}
+              className={`size-9 rounded-xl flex items-center justify-center border transition ${
+                isFavorite
+                  ? 'bg-red-50 border-[#FF4D4D] text-[#FF4D4D]'
+                  : 'border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+              title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+            >
+              <Star className={`size-4 ${isFavorite ? 'fill-[#FF4D4D]' : ''}`} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="size-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition"
+            title="Close workspace"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
       </header>
 
       {/* Central Scrollable Workspace (A4 Canvas) */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-8 md:p-12 flex justify-center items-start bg-background">
-        <div className="w-[210mm] min-h-[297mm] bg-white text-slate-900 p-[15mm] rounded-sm shadow-xl font-sans text-xs border border-slate-200 flex flex-col justify-between my-auto transition-all">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8 md:p-12 flex justify-center items-start bg-[#FAFAF8] overflow-x-hidden relative">
+        <div className="w-full sm:w-[210mm] sm:min-h-[297mm] bg-white text-slate-900 p-6 sm:p-[15mm] rounded-2xl shadow-xl font-sans text-xs border border-slate-200/90 flex flex-col justify-between my-auto transition-all relative z-10">
           <div>
             {/* A4 Document Header */}
             <div className="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block mb-1">
+                <span className="text-[10px] font-bold text-[#FF4D4D] uppercase tracking-widest block mb-1">
                   {subjectName} • {levelName} Level
                 </span>
-                <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
                   {topicTitle}
                 </h2>
               </div>
@@ -163,20 +185,30 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
             </div>
 
             {/* Skeletons / Sections Grid */}
-            {sectionItems.length === 0 ? (
+            {job.status === 'error' ? (
+              <div className="py-24 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="rounded-full bg-red-100 p-4">
+                  <AlertTriangle className="size-10 text-red-600" />
+                </div>
+                <h3 className="font-bold text-xl text-slate-900">Generation Failed</h3>
+                <p className="text-sm font-medium text-slate-500 max-w-sm">
+                  {job.errorMessage || 'The connection to the AI generation service failed. Please close this window and try again.'}
+                </p>
+              </div>
+            ) : sectionItems.length === 0 ? (
               <div className="py-24 text-center flex flex-col items-center justify-center text-slate-400 space-y-3">
-                <Sparkles className="size-8 animate-spin text-emerald-600" />
-                <p className="text-sm font-medium">Generating domain curriculum & layout grid...</p>
+                <Sparkles className="size-8 motion-safe:animate-spin text-[#FF4D4D]" />
+                <p className="text-sm font-medium text-slate-600">Generating domain curriculum & layout grid...</p>
               </div>
             ) : (
-              <div className="columns-2 gap-4 space-y-4">
+              <div className="columns-1 sm:columns-2 gap-4 space-y-4">
                 {sectionItems.map((sec) => (
                   <div
                     key={sec.index}
-                    className={`break-inside-avoid rounded-lg border p-3.5 transition-all duration-300 ${
+                    className={`break-inside-avoid rounded-xl border p-3.5 transition-all duration-300 ${
                       sec.status === 'done'
                         ? 'border-slate-200 bg-slate-50/50 shadow-xs'
-                        : 'border-dashed border-emerald-400/60 bg-emerald-50/20 animate-pulse'
+                        : 'border-dashed border-red-300 bg-red-50/20 motion-safe:animate-pulse'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -184,7 +216,7 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
                         {sec.heading}
                       </h3>
                       {sec.status !== 'done' && (
-                        <span className="text-[9px] font-medium text-emerald-700 bg-emerald-100/60 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-medium text-[#FF4D4D] bg-red-50 px-1.5 py-0.5 rounded">
                           Generating...
                         </span>
                       )}
@@ -197,9 +229,9 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
                       />
                     ) : (
                       <div className="space-y-2 py-1">
-                        <div className="h-2.5 bg-emerald-200/60 rounded w-full animate-pulse" />
-                        <div className="h-2.5 bg-emerald-200/40 rounded w-4/5 animate-pulse" />
-                        <div className="h-2.5 bg-emerald-200/30 rounded w-3/5 animate-pulse" />
+                        <div className="h-2.5 bg-red-100 rounded w-full motion-safe:animate-pulse" />
+                        <div className="h-2.5 bg-red-100/70 rounded w-4/5 motion-safe:animate-pulse" />
+                        <div className="h-2.5 bg-red-100/40 rounded w-3/5 motion-safe:animate-pulse" />
                       </div>
                     )}
                   </div>
@@ -217,15 +249,15 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
       </main>
 
       {/* Fixed Footer Bar */}
-      <footer className="h-16 px-6 sm:px-8 border-t border-border bg-card/95 text-foreground flex items-center justify-between shrink-0 z-20 shadow-xs">
+      <footer className="h-16 px-6 sm:px-8 border-t border-slate-200 bg-white/95 text-slate-900 flex items-center justify-between shrink-0 z-20 shadow-xs">
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Was this live preview helpful?</span>
+          <span className="text-xs text-slate-500">Was this live preview helpful?</span>
           <button
             onClick={() => handleVote('up')}
             className={`p-1.5 rounded-lg border transition ${
               feedback === 'up'
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-red-50 border-[#FF4D4D] text-[#FF4D4D]'
+                : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
             }`}
             title="Thumbs Up"
           >
@@ -235,8 +267,8 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
             onClick={() => handleVote('down')}
             className={`p-1.5 rounded-lg border transition ${
               feedback === 'down'
-                ? 'bg-red-500/10 border-red-500 text-red-600'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-rose-50 border-rose-500 text-rose-600'
+                : 'border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
             }`}
             title="Thumbs Down"
           >
@@ -247,7 +279,7 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-border text-foreground text-xs font-semibold hover:bg-secondary transition"
+            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition"
           >
             Close Workspace
           </button>
@@ -257,7 +289,7 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
               href={pdfDownloadUrl || '#'}
               download
               onClick={handleDownload}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:opacity-90 transition"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white text-xs font-bold shadow-sm transition"
             >
               <Download className="size-4" />
               Download PDF
@@ -265,7 +297,7 @@ export function LiveA4Modal({ isOpen, onClose, job, isGenerating }: LiveA4ModalP
           ) : (
             <button
               disabled
-              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-bold cursor-not-allowed opacity-60"
+              className="flex items-center gap-2 px-5 py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed opacity-60"
             >
               <Download className="size-4" />
               Compiling PDF...
