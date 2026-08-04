@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, Copy, Check, Download, ShieldCheck, ShieldAlert, ShieldQuestion, ExternalLink, ThumbsUp, ThumbsDown, MessageSquareWarning, Share2 } from 'lucide-react'
+import { X, Copy, Check, Download, ShieldCheck, ShieldAlert, ShieldQuestion, ExternalLink, ThumbsUp, ThumbsDown, MessageSquareWarning, Share2, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 type PreviewModalProps = {
   isOpen: boolean
@@ -16,6 +17,7 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
   const [reportText, setReportText] = useState('')
   const [reportStatus, setReportStatus] = useState<'idle' | 'submitting' | 'success'>('idle')
   const [isShared, setIsShared] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -43,14 +45,32 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
   const handleCopyCode = (codeText: string, index: number) => {
     navigator.clipboard.writeText(codeText).then(() => {
       setCopiedIndex(index)
+      toast.success('Code copied to clipboard!')
       setTimeout(() => setCopiedIndex(null), 2000)
     })
   }
 
-  const handleDownload = () => {
-    if (job.downloadUrl) {
+  const handleDownload = async () => {
+    if (!job.downloadUrl && !job.jobId && !job._id) return;
+    setIsDownloading(true);
+    try {
       fetch(`/api/jobs/${job.jobId || job._id}/analytics`, { method: 'POST' }).catch(() => {});
-      window.open(job.downloadUrl, '_blank')
+      const url = job.downloadUrl || `/api/uploads/${job.jobId || job._id}.pdf`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `${job.topic || 'cheatsheet'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      toast.error('Failed to download PDF');
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -63,7 +83,11 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating: type })
       });
-    } catch (e) { console.error(e) }
+      toast.success('Thanks for the feedback!')
+    } catch (e) { 
+      console.error(e);
+      toast.error('Failed to submit feedback')
+    }
   };
 
   const handleReportSubmit = async () => {
@@ -83,6 +107,7 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
       }, 1500);
     } catch (e) { 
       console.error(e);
+      toast.error('Failed to submit report')
       setReportStatus('idle');
     }
   };
@@ -93,8 +118,12 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
       await fetch(`/api/jobs/${job.jobId || job._id}/share`, { method: 'POST' });
       await navigator.clipboard.writeText(job.downloadUrl);
       setIsShared(true);
+      toast.success('Link copied to clipboard!')
       setTimeout(() => setIsShared(false), 2000);
-    } catch (e) { console.error(e) }
+    } catch (e) { 
+      console.error(e);
+      toast.error('Failed to share')
+    }
   };
 
   return (
@@ -267,11 +296,12 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
             <button
               type="button"
               onClick={handleDownload}
-              className="rounded-xl bg-primary text-primary-foreground px-3 sm:px-4 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-1.5"
+              disabled={isDownloading}
+              className="rounded-xl bg-primary text-primary-foreground px-3 sm:px-4 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download className="size-4" />
-              <span className="hidden sm:inline">Download PDF</span>
-              <span className="sm:hidden">Download</span>
+              {isDownloading ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+              <span className="hidden sm:inline">{isDownloading ? 'Preparing PDF...' : 'Download PDF'}</span>
+              <span className="sm:hidden">{isDownloading ? 'Loading...' : 'Download'}</span>
             </button>
           </div>
         </div>

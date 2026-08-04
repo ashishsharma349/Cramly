@@ -7,10 +7,10 @@ export function StatusPoller({ currentJob, onOpenCanvas }: { currentJob: any; on
   const displayStage = currentJob.label || currentJob.stageLabel || currentJob.progressStage || currentJob.progress || 'Processing...';
 
   return (
-    <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5 shadow-sm sm:p-6 lg:p-8 flex items-center justify-between gap-4 animate-pulse">
+    <div className="rounded-3xl border border-primary/20 bg-primary/5 p-5 shadow-sm sm:p-6 lg:p-8 flex items-center justify-between gap-4 motion-safe:animate-pulse">
       <div className="flex items-center gap-4">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-          <RefreshCw className="size-5 text-primary animate-spin" />
+          <RefreshCw className="size-5 text-primary motion-safe:animate-spin" />
         </div>
         <div className="space-y-1">
           <h4 className="text-sm font-semibold text-foreground">
