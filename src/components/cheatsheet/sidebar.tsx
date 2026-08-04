@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import {
   Home,
   FileText,
@@ -8,9 +11,10 @@ import {
   Moon,
   Wand2,
   LogOut,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 
 const NAV = [
   { id: 'home', label: 'Home', icon: Home },
@@ -30,7 +34,7 @@ type SidebarProps = {
   onLogout?: () => void
 }
 
-// Renders the desktop sidebar menu options and theme toggle controls.
+// Renders the collapsible light-themed sidebar matching Homepage visual system with expand/collapse toggle button
 export function Sidebar({
   active,
   onNavigate,
@@ -40,20 +44,38 @@ export function Sidebar({
   user,
   onLogout,
 }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(true)
+
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-border/40 bg-sidebar p-6 lg:flex">
-      <div className="flex items-center gap-2 -ml-2 mb-2">
-        <img
-          src="/bear-logo-removebg-preview.png"
-          alt="Cramly logo"
-          className="size-24 object-contain scale-110"
-        />
-        <div className="leading-tight tracking-tight">
-          <span className="block text-[32px] font-bold text-foreground">Cramly</span>
-        </div>
+    <aside
+      className={cn(
+        'hidden shrink-0 flex-col border-r border-slate-200 bg-white p-5 lg:flex transition-all duration-300',
+        collapsed ? 'w-20' : 'w-72',
+      )}
+    >
+      {/* Top Header: Cramly wordmark + Collapse Toggle Button */}
+      <div className="flex items-center justify-between mb-6 px-1">
+        {!collapsed && (
+          <span className="font-bold text-2xl tracking-tight text-slate-900 font-sans">
+            Cramly
+          </span>
+        )}
+        {collapsed && (
+          <span className="font-bold text-xl tracking-tight text-slate-900 font-sans mx-auto">
+            C
+          </span>
+        )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors ml-auto"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+        </button>
       </div>
 
-      <nav className="mt-8 flex flex-col gap-1">
+      {/* Navigation */}
+      <nav className="flex flex-col gap-1.5">
         {NAV.map((item) => {
           const isActive = active === item.id
           return (
@@ -61,86 +83,88 @@ export function Sidebar({
               key={item.id}
               type="button"
               onClick={() => onNavigate(item.id)}
+              title={collapsed ? item.label : undefined}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors',
+                collapsed ? 'justify-center px-0' : 'px-4',
                 isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                  ? 'bg-red-50 text-[#FF4D4D] font-semibold'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
               )}
             >
-              <item.icon className="size-5" />
-              {item.label}
+              <item.icon className={cn('size-4 stroke-[2] shrink-0', isActive ? 'text-[#FF4D4D]' : 'text-slate-500')} />
+              {!collapsed && <span>{item.label}</span>}
             </button>
           )
         })}
       </nav>
 
+      {/* Auth / Account Box */}
       {!user ? (
-        <div className="mt-8 rounded-2xl border border-border bg-secondary/50 p-5 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10">
-            <Sparkles className="size-6 text-primary" />
-          </div>
-          <h3 className="mt-3 text-lg leading-snug font-semibold text-balance">
-            Save & Organize Your Cheatsheets
-          </h3>
-          <p className="mt-2 text-[13px] leading-relaxed font-normal text-muted-foreground text-pretty sm:text-base">
-            Create an account to save, organize and access your cheatsheets
-            anywhere.
-          </p>
-          <Button className="mt-4 w-full rounded-xl" onClick={onAuthClick}>Sign Up / Log In</Button>
-        </div>
-      ) : (
-        <div className="mt-8 rounded-[20px] border border-border/80 bg-[#fafafa] dark:bg-card/50 p-5">
-          <div className="mb-4 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-            ACCOUNT
-          </div>
-          <div className="flex items-center gap-3.5 mb-5">
-            <div className="size-11 shrink-0 rounded-full bg-[#e8f3ec] dark:bg-emerald-950/40 flex items-center justify-center text-[#1b4332] dark:text-emerald-400 font-bold text-sm tracking-wide">
-              {user.name.substring(0, 2).toUpperCase()}
+        !collapsed ? (
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 text-center">
+            <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-red-50">
+              <Sparkles className="size-5 text-[#FF4D4D]" />
             </div>
-            <div className="flex-1 overflow-hidden leading-tight">
-              <p className="truncate text-[15px] font-semibold text-foreground/90">{user.name}</p>
-              <p className={cn("truncate text-[13px] mt-0.5", user.freeCheatsheetsRemaining === 0 ? "text-rose-500 font-medium" : "text-[#2e7d56] dark:text-emerald-500 font-medium")}>
-                {user.freeCheatsheetsRemaining} / 5 Free Credits
-              </p>
-            </div>
+            <h3 className="mt-3 text-base leading-snug font-bold text-slate-900">
+              Save &amp; Organize
+            </h3>
+            <p className="mt-1.5 text-xs leading-relaxed font-normal text-slate-600">
+              Access your cheatsheets anywhere.
+            </p>
+            <button
+              onClick={onAuthClick}
+              className="mt-4 w-full rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white font-semibold py-2.5 text-sm shadow-sm transition-all"
+            >
+              Sign Up / Log In
+            </button>
           </div>
-          <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 rounded-[12px] py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-border/80 shadow-sm">
-            <LogOut className="size-4" />
-            Log Out
+        ) : (
+          <button
+            onClick={onAuthClick}
+            title="Sign Up / Log In"
+            className="mt-8 mx-auto flex size-10 items-center justify-center rounded-xl bg-[#FF4D4D] text-white shadow-sm"
+          >
+            <Sparkles className="size-5" />
           </button>
-        </div>
+        )
+      ) : (
+        !collapsed ? (
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
+            <div className="mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              ACCOUNT
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="size-10 shrink-0 rounded-full bg-red-50 flex items-center justify-center text-[#FF4D4D] font-bold text-sm">
+                {user.name.substring(0, 2).toUpperCase()}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="truncate text-sm font-bold text-slate-900">{user.name}</p>
+                <p className={cn("truncate text-xs font-medium mt-0.5", user.freeCheatsheetsRemaining === 0 ? "text-rose-500 font-bold" : "text-slate-600")}>
+                  {user.freeCheatsheetsRemaining} Credits Left
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200 bg-white"
+            >
+              <LogOut className="size-3.5" />
+              Log Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onLogout}
+            title="Log Out"
+            className="mt-8 mx-auto flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900"
+          >
+            <LogOut className="size-4" />
+          </button>
+        )
       )}
 
-      <div className="mt-auto flex items-center justify-between rounded-xl border border-border px-4 py-3">
-        <span className="flex items-center gap-2 text-sm font-medium">
-          {dark ? (
-            <Moon className="size-4 text-primary" />
-          ) : (
-            <Sun className="size-4 text-primary" />
-          )}
-          {dark ? 'Dark Mode' : 'Light Mode'}
-        </span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={dark}
-          aria-label="Toggle dark mode"
-          onClick={onToggleTheme}
-          className={cn(
-            'relative h-6 w-11 rounded-full transition-colors',
-            dark ? 'bg-primary' : 'bg-primary/40',
-          )}
-        >
-          <span
-            className={cn(
-              'absolute top-0.5 size-5 rounded-full bg-card shadow transition-transform',
-              dark ? 'translate-x-5' : 'translate-x-0.5',
-            )}
-          />
-        </button>
-      </div>
     </aside>
   )
 }

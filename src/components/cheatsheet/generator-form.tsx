@@ -1,4 +1,7 @@
+'use client'
+
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   Search,
   BookOpen,
@@ -8,10 +11,9 @@ import {
   Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { LEVELS, SUBJECTS, type LevelId } from './data'
 
-// Renders the label for each step in the generation form.
+// Renders step label with black bold text and coral-red outline icon
 function StepLabel({
   icon: Icon,
   step,
@@ -22,19 +24,19 @@ function StepLabel({
   label: string
 }) {
   return (
-    <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-      <Icon className="size-4 text-primary" />
+    <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+      <Icon className="size-4 text-[#FF4D4D]" />
       {step}. {label}
     </div>
   )
 }
 
-// Manages cheatsheet parameters, runs validation, and triggers generation.
+// Manages cheatsheet parameters, runs validation, and triggers generation with coral-red style
 export function GeneratorForm({
   onSubmit,
   isGenerating,
 }: {
-  onSubmit: (data: { topic: string; subject: string; level: LevelId; generationMode: string }) => void
+  onSubmit: (data: { topic: string; subject: string; level: LevelId; generationMode: string; ceMode: string }) => void
   isGenerating: boolean
 }) {
   const [topic, setTopic] = useState('')
@@ -50,33 +52,45 @@ export function GeneratorForm({
     setError('')
 
     if (!topic || topic.trim().length < 2) {
-      setError('Topic must be at least 2 characters.')
+      const msg = 'Topic must be at least 2 characters.'
+      setError(msg)
+      toast.error(msg)
       return
     }
     if (topic.length > 150) {
-      setError('Topic must be maximum 150 characters.')
+      const msg = 'Topic must be maximum 150 characters.'
+      setError(msg)
+      toast.error(msg)
       return
     }
     if (!/^[a-zA-Z0-9\s\-]+$/.test(topic)) {
-      setError('Topic can only contain letters, numbers, spaces, and dashes.')
+      const msg = 'Topic can only contain letters, numbers, spaces, and dashes.'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
     let finalSubject = subject
     if (subject === 'custom') {
       if (!customSubject || customSubject.trim().length < 2) {
-        setError('Please enter a custom subject of at least 2 characters.')
+        const msg = 'Please enter a custom subject of at least 2 characters.'
+        setError(msg)
+        toast.error(msg)
         return
       }
       if (customSubject.length > 50) {
-        setError('Custom subject must be maximum 50 characters.')
+        const msg = 'Custom subject must be maximum 50 characters.'
+        setError(msg)
+        toast.error(msg)
         return
       }
       finalSubject = customSubject.trim()
     }
 
     if (!finalSubject) {
-      setError('Please select or enter a subject.')
+      const msg = 'Please select or enter a subject.'
+      setError(msg)
+      toast.error(msg)
       return
     }
 
@@ -86,9 +100,10 @@ export function GeneratorForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6 lg:p-8"
+      className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 lg:p-8 shadow-sm space-y-6"
     >
       <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+        {/* Step 1: Topic */}
         <div className="space-y-2">
           <StepLabel icon={Search} step={1} label="Topic" />
           <input
@@ -96,13 +111,14 @@ export function GeneratorForm({
             onChange={(e) => setTopic(e.target.value)}
             disabled={isGenerating}
             placeholder="e.g., Photosynthesis, French Revolution, Calculus"
-            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-500">
             Enter the topic you want a cheatsheet for
           </p>
         </div>
 
+        {/* Step 2: Subject */}
         <div className="space-y-2">
           <StepLabel icon={BookOpen} step={2} label="Subject" />
           <div className="relative">
@@ -116,8 +132,8 @@ export function GeneratorForm({
               }}
               disabled={isGenerating}
               className={cn(
-                'w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20',
-                subject ? 'text-foreground' : 'text-muted-foreground',
+                'w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20',
+                subject ? 'text-slate-900' : 'text-slate-400',
               )}
             >
               <option value="">Select a subject</option>
@@ -128,7 +144,7 @@ export function GeneratorForm({
               ))}
               <option value="custom">Other (type custom subject)</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted-foreground" />
+            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-slate-400" />
           </div>
           {subject === 'custom' && (
             <div className="mt-3">
@@ -137,15 +153,16 @@ export function GeneratorForm({
                 onChange={(e) => setCustomSubject(e.target.value)}
                 disabled={isGenerating}
                 placeholder="e.g., Science, History, Biology"
-                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20"
               />
             </div>
           )}
-          <p className="hidden text-xs text-muted-foreground lg:block">
+          <p className="hidden text-xs text-slate-500 lg:block">
             Choose the category that fits best
           </p>
         </div>
 
+        {/* Step 3: Generation Mode */}
         <div className="space-y-2">
           <StepLabel icon={Layers} step={3} label="Generation Mode" />
           <div className="relative">
@@ -153,19 +170,20 @@ export function GeneratorForm({
               value={generationMode}
               onChange={(e) => setGenerationMode(e.target.value)}
               disabled={isGenerating}
-              className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-foreground"
+              className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20"
             >
               <option value="balanced">Balanced (Default)</option>
               <option value="concise">Concise</option>
               <option value="detailed" disabled>Detailed (Coming Soon)</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted-foreground" />
+            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-slate-400" />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-500">
             Select the density and style of the cheatsheet
           </p>
         </div>
 
+        {/* Step 4: Speed / Accuracy */}
         <div className="space-y-2">
           <StepLabel icon={Layers} step={4} label="Speed / Accuracy" />
           <div className="relative">
@@ -173,20 +191,21 @@ export function GeneratorForm({
               value={ceMode}
               onChange={(e) => setCeMode(e.target.value)}
               disabled={isGenerating}
-              className="w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 text-foreground"
+              className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20"
             >
               <option value="fast">Fast (Standard)</option>
               <option value="accurate">Accurate (Slower)</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted-foreground" />
+            <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-slate-400" />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-500">
             Fast is usually good enough. Accurate is slower.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 space-y-3">
+      {/* Step 5: Level Selector */}
+      <div className="space-y-3 pt-2">
         <StepLabel icon={ChartColumnBig} step={5} label="Level" />
         <div
           role="radiogroup"
@@ -204,36 +223,28 @@ export function GeneratorForm({
                 disabled={isGenerating || lvl.disabled}
                 onClick={() => setLevel(lvl.id)}
                 className={cn(
-                  'flex items-center gap-3 rounded-2xl border p-4 text-left transition-all',
+                  'flex items-center gap-3 rounded-xl border p-4 text-left transition-all',
                   lvl.disabled && 'opacity-50 cursor-not-allowed',
                   selected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border bg-card hover:border-primary/40',
+                    ? 'border-[#FF4D4D] bg-red-50/40 ring-1 ring-[#FF4D4D]'
+                    : 'border-slate-200 bg-white hover:border-slate-300',
                 )}
               >
                 <span
                   className={cn(
                     'flex size-5 shrink-0 items-center justify-center rounded-full border-2',
-                    selected ? 'border-primary' : 'border-muted-foreground/40',
+                    selected ? 'border-[#FF4D4D]' : 'border-slate-300',
                   )}
                 >
                   {selected && (
-                    <span className="size-2.5 rounded-full bg-primary" />
+                    <span className="size-2.5 rounded-full bg-[#FF4D4D]" />
                   )}
-                </span>
-                <span
-                  className={cn(
-                    'flex size-9 shrink-0 items-center justify-center rounded-xl',
-                    lvl.iconWrap,
-                  )}
-                >
-                  <lvl.icon className={cn('size-5', lvl.iconColor)} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-foreground">
+                  <span className="block text-sm font-bold text-slate-900">
                     {lvl.title}
                   </span>
-                  <span className="block text-xs text-muted-foreground">
+                  <span className="block text-xs text-slate-500">
                     {lvl.subtitle}
                   </span>
                 </span>
@@ -244,19 +255,20 @@ export function GeneratorForm({
       </div>
 
       {error && (
-        <div className="mt-4 text-sm font-semibold text-destructive">
+        <div className="text-sm font-semibold text-red-500">
           Error: {error}
         </div>
       )}
 
-      <Button
+      {/* Primary Submit Button matching Homepage CTA */}
+      <button
         type="submit"
         disabled={isGenerating}
-        className="mt-6 h-12 w-full rounded-2xl text-base"
+        className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#FF4D4D] hover:bg-[#FF3333] text-white font-semibold text-base shadow-md shadow-red-500/20 transition-all disabled:opacity-50"
       >
         <Send className="size-4" />
         {isGenerating ? 'Generating Cheatsheet...' : 'Generate Cheatsheet'}
-      </Button>
+      </button>
     </form>
   )
 }
