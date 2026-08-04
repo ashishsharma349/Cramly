@@ -1,77 +1,73 @@
 'use client'
 
-import { Zap, FileText, Target, BookOpen, Download, Star } from 'lucide-react'
-
-const FEATURES = [
-  {
-    id: 1,
-    icon: Zap,
-    title: 'Instant Generation',
-    description: 'Create in seconds with AI power',
-    colorText: 'text-green-600',
-    colorBg: 'bg-green-50',
-  },
-  {
-    id: 2,
-    icon: FileText,
-    title: 'Well Structured',
-    description: 'Organized, concise and easy to understand',
-    colorText: 'text-purple-600',
-    colorBg: 'bg-purple-50',
-  },
-  {
-    id: 3,
-    icon: Target,
-    title: 'Exam Focused',
-    description: 'Perfect for quick revision and better scores',
-    colorText: 'text-orange-600',
-    colorBg: 'bg-orange-50',
-  },
-  {
-    id: 4,
-    icon: BookOpen,
-    title: 'Multiple Domains',
-    description: 'History, Geography, Science, Maths, Tech',
-    colorText: 'text-blue-600',
-    colorBg: 'bg-blue-50',
-  },
-  {
-    id: 5,
-    icon: Download,
-    title: 'Export Anywhere',
-    description: 'Download as PDF, Markdown & more',
-    colorText: 'text-pink-600',
-    colorBg: 'bg-pink-50',
-  },
-  {
-    id: 6,
-    icon: Star,
-    title: 'Customizable',
-    description: 'Choose style, length & content you need',
-    colorText: 'text-cyan-600',
-    colorBg: 'bg-cyan-50',
-  },
-]
-
+// Single-line comment describing purpose per AGENTS.md rule
+// Renders responsive 'How it works' 3-step workflow section
 export function FeatureCards() {
   return (
-    <section className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {FEATURES.map((feature) => {
-          const Icon = feature.icon
-          return (
-            <div
-              key={feature.id}
-              className="rounded-xl border border-border bg-card p-6 hover:border-primary/50 transition-colors"
-            >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${feature.colorBg}`}>
-                <Icon className={`size-5 ${feature.colorText}`} />
-              </div>
-              <h3 className="font-semibold text-base mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+    <section className="py-8 sm:py-12 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 sm:mb-10">
+          How it works
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 items-start relative">
+          {/* Step 1 */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3 relative z-10">
+            <div className="h-24 sm:h-28 flex items-center justify-center md:justify-start">
+              <img
+                src="/step1-icon.png"
+                alt="1. You enter a topic"
+                className="h-20 sm:h-24 w-auto object-contain"
+              />
             </div>
-          )
-        })}
+            <div className="space-y-1">
+              <h3 className="font-bold text-slate-900 text-base">
+                1. You enter a topic
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-[240px]">
+                Paste anything. Notes, PDFs, texts, or random thoughts.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3 relative z-10">
+            <div className="h-24 sm:h-28 flex items-center justify-center md:justify-start">
+              <img
+                src="/step2-icon.png"
+                alt="2. AI processes & structures"
+                className="h-20 sm:h-24 w-auto object-contain"
+              />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-slate-900 text-base">
+                2. AI processes &amp; structures
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-[240px]">
+                Cramly reads, understands, and organizes the chaos.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3 relative z-10">
+            <div className="h-24 sm:h-28 flex items-center justify-center md:justify-start">
+              <img
+                src="/step3-icon.png"
+                alt="3. You get one clean page"
+                className="h-20 sm:h-24 w-auto object-contain"
+              />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-slate-900 text-base">
+                3. You get one clean page
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-[240px]">
+                Structured, simplified, and ready to study or print.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

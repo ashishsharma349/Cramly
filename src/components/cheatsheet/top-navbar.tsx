@@ -1,52 +1,35 @@
 'use client'
 
-import { Bell, ChevronDown, Plus, LogOut, Menu } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useAuth } from './auth-context'
-import Image from 'next/image'
 
+// Single-line comment describing purpose per AGENTS.md rule
+// Renders the clean minimal TopNavbar matching the reference UI
 export function TopNavbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout } = useAuth()
-  
-  const displayName = user ? user.name : 'Guest'
-  const initials = user ? user.name.substring(0, 2).toUpperCase() : 'G'
 
   return (
-    <div className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-between gap-4 px-6 py-5">
-        <div className="flex items-center gap-3 lg:hidden">
-          {onMenuClick && (
-            <button onClick={onMenuClick} className="p-2 -ml-2 rounded-lg hover:bg-secondary text-muted-foreground transition-colors">
-              <Menu className="size-5" />
-            </button>
-          )}
-          <span className="font-bold text-lg tracking-tight">Cramly</span>
+    <header className="relative z-30 w-full bg-white/80 backdrop-blur-sm border-b border-slate-100/60">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-2xl tracking-tight text-slate-900 font-sans">
+            Cramly
+          </span>
         </div>
 
-        {/* Placeholder to keep Right Actions aligned to the right since we removed search */}
-        <div className="hidden flex-1 lg:block"></div>
-
-        {/* Right Actions */}
-        <div className="flex items-center gap-3 lg:gap-4">
-          {/* Profile */}
-          <button className="flex items-center gap-2.5 rounded-xl hover:bg-secondary/80 px-2 py-1.5 transition-colors border border-transparent hover:border-border/50">
-            <div className="size-8 rounded-full bg-[#e8f3ec] dark:bg-emerald-950/40 flex items-center justify-center text-[#1b4332] dark:text-emerald-400 font-bold text-xs tracking-wide">
-              {initials}
+        <div className="flex items-center gap-4">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-700">{user.name}</span>
+              <button
+                onClick={logout}
+                className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+              >
+                Log out
+              </button>
             </div>
-            <div className="hidden md:block text-left">
-              <p className="text-sm font-semibold text-foreground/90">{displayName}</p>
-            </div>
-            <ChevronDown className="size-4 text-muted-foreground/70 hidden md:block ml-1" />
-          </button>
-          
-          {/* Logout Button if user is logged in */}
-          {user && (
-            <button onClick={logout} className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-red-500" title="Log out">
-              <LogOut className="size-5" />
-            </button>
-          )}
+          ) : null}
         </div>
       </div>
-    </div>
+    </header>
   )
 }
