@@ -16,9 +16,11 @@ type BottomNavProps = {
   onNavigate: (id: string) => void
 }
 
+// Single-line comment describing purpose per AGENTS.md rule
+// Renders the responsive light-themed mobile bottom navigation bar with coral-red active state
 export function BottomNav({ active, onNavigate }: BottomNavProps) {
   return (
-    <nav className="sticky bottom-0 z-30 flex items-center justify-around border-t border-border bg-card/95 px-2 py-2 backdrop-blur lg:hidden">
+    <nav className="sticky bottom-0 z-30 flex items-center justify-around border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
       {NAV.map((item) => {
         const isActive = active === item.id
         return (
@@ -29,7 +31,7 @@ export function BottomNav({ active, onNavigate }: BottomNavProps) {
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'flex flex-1 flex-col items-center gap-1 rounded-lg py-1 text-[11px] font-medium transition-colors',
-              isActive ? 'text-primary' : 'text-muted-foreground',
+              isActive ? 'text-[#FF4D4D] font-semibold' : 'text-slate-500 hover:text-slate-900',
             )}
           >
             <item.icon className="size-5" />
