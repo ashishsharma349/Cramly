@@ -19,25 +19,6 @@ export function Footer({ onNavigate }: { onNavigate?: (id: string) => void }) {
         {/* Center: Subject & Page Links */}
         <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-slate-600 font-medium">
           <button
-            onClick={() => onNavigate?.('programming')}
-            className="hover:text-slate-900 transition-colors"
-          >
-            Programming
-          </button>
-          <button
-            onClick={() => onNavigate?.('science')}
-            className="hover:text-slate-900 transition-colors"
-          >
-            Science
-          </button>
-          <button
-            onClick={() => onNavigate?.('mathematics')}
-            className="hover:text-slate-900 transition-colors"
-          >
-            Mathematics
-          </button>
-          <span className="text-slate-300 hidden sm:inline">•</span>
-          <button
             onClick={() => onNavigate?.('about')}
             className="hover:text-slate-900 transition-colors"
           >
