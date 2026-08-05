@@ -49,18 +49,11 @@ export const LEVELS: Level[] = [
 ]
 
 export const SUBJECTS = [
-  'Science',
+  'Technology/Programming',
   'Mathematics',
+  'Science',
   'History',
   'Geography',
-  'Programming',
-  'Business',
-  'Medicine',
-  'Law',
-  'Literature',
-  'Economics',
-  'Psychology',
-  'Engineering',
 ]
 
 export type BadgeLevel = 'School' | 'College' | 'Expert'

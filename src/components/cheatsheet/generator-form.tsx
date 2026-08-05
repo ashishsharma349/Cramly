@@ -41,7 +41,6 @@ export function GeneratorForm({
 }) {
   const [topic, setTopic] = useState('')
   const [subject, setSubject] = useState('')
-  const [customSubject, setCustomSubject] = useState('')
   const [error, setError] = useState('')
   const [level, setLevel] = useState<LevelId>('school')
   const [generationMode, setGenerationMode] = useState('balanced')
@@ -70,31 +69,14 @@ export function GeneratorForm({
       return
     }
 
-    let finalSubject = subject
-    if (subject === 'custom') {
-      if (!customSubject || customSubject.trim().length < 2) {
-        const msg = 'Please enter a custom subject of at least 2 characters.'
-        setError(msg)
-        toast.error(msg)
-        return
-      }
-      if (customSubject.length > 50) {
-        const msg = 'Custom subject must be maximum 50 characters.'
-        setError(msg)
-        toast.error(msg)
-        return
-      }
-      finalSubject = customSubject.trim()
-    }
-
-    if (!finalSubject) {
-      const msg = 'Please select or enter a subject.'
+    if (!subject) {
+      const msg = 'Please select a subject.'
       setError(msg)
       toast.error(msg)
       return
     }
 
-    onSubmit({ topic: topic.trim(), subject: finalSubject, level, generationMode, ceMode })
+    onSubmit({ topic: topic.trim(), subject, level, generationMode, ceMode })
   }
 
   return (
@@ -124,12 +106,7 @@ export function GeneratorForm({
           <div className="relative">
             <select
               value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value)
-                if (e.target.value !== 'custom') {
-                  setCustomSubject('')
-                }
-              }}
+              onChange={(e) => setSubject(e.target.value)}
               disabled={isGenerating}
               className={cn(
                 'w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20',
@@ -142,21 +119,9 @@ export function GeneratorForm({
                   {s}
                 </option>
               ))}
-              <option value="custom">Other (type custom subject)</option>
             </select>
             <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-slate-400" />
           </div>
-          {subject === 'custom' && (
-            <div className="mt-3">
-              <input
-                value={customSubject}
-                onChange={(e) => setCustomSubject(e.target.value)}
-                disabled={isGenerating}
-                placeholder="e.g., Science, History, Biology"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#FF4D4D] focus:ring-2 focus:ring-red-500/20"
-              />
-            </div>
-          )}
           <p className="hidden text-xs text-slate-500 lg:block">
             Choose the category that fits best
           </p>
