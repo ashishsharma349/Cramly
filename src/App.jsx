@@ -668,7 +668,7 @@ export default function App() {
         user={user}
       />
 
-      <Toaster position="bottom-right" richColors />
+      <Toaster position="bottom-right" duration={3000} closeButton richColors />
     </div>
   )
 }
