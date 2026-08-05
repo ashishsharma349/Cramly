@@ -89,3 +89,16 @@ export async function deleteJob(jobId, isAuthUser = false) {
   }
   return response.json();
 }
+
+// Fetches public canonical cheatsheets filtered by domain/subject.
+export async function getPublicCheatsheets(subject) {
+  const queryParam = subject ? `?subject=${encodeURIComponent(subject)}` : '';
+  const response = await fetch(`${API_BASE_URL}/public/cheatsheets${queryParam}`, {
+    headers: getHeaders({}, false),
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch public cheatsheets library.');
+  }
+  return response.json();
+}
