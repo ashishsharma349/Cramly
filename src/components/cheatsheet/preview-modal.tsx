@@ -132,12 +132,12 @@ export function PreviewModal({ isOpen, job, onClose }: PreviewModalProps) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl border border-border bg-card shadow-xl overflow-hidden animate-scale-in"
+        className="relative w-full max-w-2xl max-h-[85dvh] sm:max-h-[85vh] flex flex-col rounded-3xl border border-border bg-card shadow-xl overflow-hidden animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border p-6">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">
+          <div className="min-w-0 pr-4">
+            <h2 className="text-xl font-bold text-foreground truncate">
               {data.title || `${job.topic} Cheatsheet`}
             </h2>
             <div className="mt-1 flex items-center gap-3">

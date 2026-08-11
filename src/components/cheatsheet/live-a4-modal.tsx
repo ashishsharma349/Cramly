@@ -115,18 +115,18 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col w-screen h-screen bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex flex-col w-full h-full h-[100dvh] max-h-[100dvh] bg-slate-900/40 backdrop-blur-sm overflow-hidden animate-in fade-in duration-200">
       
       {/* Fixed Header Bar */}
       <header className="h-16 px-6 sm:px-8 border-b border-slate-200 bg-white/95 text-slate-900 flex items-center justify-between shrink-0 z-20 shadow-xs">
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-red-50 text-[#FF4D4D] font-bold border border-red-100">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-red-50 text-[#FF4D4D] font-bold border border-red-100 shrink-0">
             <Wand2 className="size-4" />
           </span>
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              {topicTitle}
-              <span className="text-[10px] border border-slate-200 px-2 py-0.5 rounded-md text-slate-500 uppercase tracking-wider font-semibold">
+          <div className="min-w-0">
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 min-w-0">
+              <span className="truncate">{topicTitle}</span>
+              <span className="hidden sm:inline-block text-[10px] border border-slate-200 px-2 py-0.5 rounded-md text-slate-500 uppercase tracking-wider font-semibold shrink-0">
                 {subjectName} • {levelName}
               </span>
             </h3>
@@ -138,7 +138,7 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {onToggleFavorite && (
             <button
               onClick={onToggleFavorite}
@@ -212,11 +212,11 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                      <h3 className="font-bold text-xs text-slate-900 flex items-center gap-1.5 min-w-0 break-words pr-2">
                         {sec.heading}
                       </h3>
                       {sec.status !== 'done' && (
-                        <span className="text-[9px] font-medium text-[#FF4D4D] bg-red-50 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-medium text-[#FF4D4D] bg-red-50 px-1.5 py-0.5 rounded shrink-0">
                           Generating...
                         </span>
                       )}
@@ -249,9 +249,9 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
       </main>
 
       {/* Fixed Footer Bar */}
-      <footer className="h-16 px-6 sm:px-8 border-t border-slate-200 bg-white/95 text-slate-900 flex items-center justify-between shrink-0 z-20 shadow-xs">
+      <footer className="min-h-[4rem] h-auto py-2.5 px-4 sm:px-8 border-t border-slate-200 bg-white/95 text-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0 z-20 shadow-xs pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500">Was this live preview helpful?</span>
+          <span className="hidden sm:inline text-xs text-slate-500">Was this live preview helpful?</span>
           <button
             onClick={() => handleVote('up')}
             className={`p-1.5 rounded-lg border transition ${
