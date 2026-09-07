@@ -63,8 +63,17 @@ export default function RecentCheatsheets({ jobs, onPreview, onDelete, onViewAll
         ) : (
           jobs.map((job) => {
             const isCompleted = job.status === 'done';
-            const isFailed = job.status === 'error';
-            const isProcessing = job.status === 'processing' || job.status === 'pending';
+            let isFailed = job.status === 'error';
+            let isProcessing = job.status === 'processing' || job.status === 'pending';
+
+            // Safety timeout: if processing for > 5 minutes, mark as failed
+            if (isProcessing && job.createdAt) {
+              const ageMinutes = (Date.now() - new Date(job.createdAt).getTime()) / 60000;
+              if (ageMinutes > 5) {
+                isProcessing = false;
+                isFailed = true;
+              }
+            }
 
             return (
               <div key={job.jobId} className="cheatsheet-row">
