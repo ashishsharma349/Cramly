@@ -2,6 +2,12 @@ import httpProxy from 'http-proxy';
 
 const proxy = httpProxy.createProxyServer();
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 // Vercel Serverless Function to proxy /api requests to Hugging Face
 export default function handler(req, res) {
   return new Promise((resolve, reject) => {
