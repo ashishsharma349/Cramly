@@ -38,11 +38,13 @@ export const AdminPortal = () => {
   const fetchConfig = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/config`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-Admin-Token': token }
       });
       if (res.ok) {
         const data = await res.json();
         setConfig(data.providerModels);
+      } else {
+        toast.error('Failed to authenticate token with backend');
       }
     } catch (e) {
       console.error(e);
@@ -53,12 +55,14 @@ export const AdminPortal = () => {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/probe`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-Admin-Token': token }
       });
       if (res.ok) {
         const data = await res.json();
         setLiveModels(data.liveModels);
         toast.success('Probed active models from providers');
+      } else {
+        toast.error(`Probe failed with status ${res.status}`);
       }
     } catch (e) {
       toast.error('Failed to probe models');
@@ -83,7 +87,7 @@ export const AdminPortal = () => {
       const res = await fetch(`${API_BASE_URL}/admin/config`, {
         method: 'PUT',
         headers: { 
-          'Authorization': `Bearer ${token}`,
+          'X-Admin-Token': token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ providerModels: config })
