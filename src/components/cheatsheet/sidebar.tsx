@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -76,11 +77,15 @@ export function Sidebar({
 
       {/* Navigation */}
       <nav className="flex flex-col gap-1.5">
-        {NAV.map((item) => {
-          const isActive = active === item.id
-          return (
-            <button
-              key={item.id}
+        {(() => {
+          const isAdmin = user?.email === 'ashishsharma90807@gmail.com' || (typeof localStorage !== 'undefined' && localStorage.getItem('admin_token'))
+          const dynamicNav = isAdmin ? [...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }] : NAV
+          
+          return dynamicNav.map((item) => {
+            const isActive = active === item.id
+            return (
+              <button
+                key={item.id}
               type="button"
               onClick={() => onNavigate(item.id)}
               title={collapsed ? item.label : undefined}
@@ -97,7 +102,7 @@ export function Sidebar({
               {!collapsed && <span>{item.label}</span>}
             </button>
           )
-        })}
+        })})()}
       </nav>
 
       {/* Auth / Account Box */}

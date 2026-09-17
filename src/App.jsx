@@ -408,10 +408,6 @@ export default function App() {
   const displayJobs = user ? jobs : guestJobs
   const isGuest = !user
 
-  if (window.location.pathname === '/admin-portal') {
-    return <AdminPortal />;
-  }
-
   return (
     <div className="flex min-h-screen bg-[#FAFAF8] text-slate-900 relative overflow-x-hidden">
       {/* Subtle notes texture overlay at page edges (11% opacity) */}
@@ -432,7 +428,11 @@ export default function App() {
       )}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {activeTab === 'home' ? (
+        {activeTab === 'admin' ? (
+          <div className="flex-1 w-full max-w-5xl mx-auto pt-6 px-4 pb-24 md:pb-8 lg:px-8">
+            <AdminPortal />
+          </div>
+        ) : activeTab === 'home' ? (
           <HomePage
             jobs={displayJobs.slice(0, 3)}
             isGuest={isGuest}
