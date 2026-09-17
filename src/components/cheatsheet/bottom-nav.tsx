@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, FileText, Star, User, Wand2 } from 'lucide-react'
+import { Home, FileText, Star, User, Wand2, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -9,6 +9,7 @@ const NAV = [
   { id: 'cheatsheets', label: 'My Cheatsheets', icon: FileText },
   { id: 'favorites', label: 'Favorites', icon: Star },
   { id: 'profile', label: 'Profile', icon: User },
+  { id: 'admin', label: 'Admin', icon: Shield },
 ]
 
 type BottomNavProps = {

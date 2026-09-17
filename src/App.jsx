@@ -25,7 +25,7 @@ import { LiveA4Modal } from './components/cheatsheet/live-a4-modal'
 import { StatusPoller } from './components/cheatsheet/status-poller'
 import { Button } from './components/ui/button'
 import { HomePage } from './components/cheatsheet/home-page'
-import { Wand2, LogOut } from 'lucide-react'
+import { Wand2, LogOut, Shield } from 'lucide-react'
 import { AuthPage } from './components/cheatsheet/auth-page'
 import { useAuth } from './components/cheatsheet/auth-context'
 import { QuotaModal } from './components/cheatsheet/quota-modal'
@@ -710,7 +710,7 @@ function MobileDrawer({
         </div>
 
         <nav className="mt-6 flex flex-col gap-1">
-          {NAV.map((item) => {
+          {[...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }].map((item) => {
             const isActive = active === item.id
             return (
               <button
