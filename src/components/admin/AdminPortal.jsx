@@ -3,6 +3,7 @@ import { Shield, Key, Search, CheckCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const AdminPortal = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
   const [password, setPassword] = useState('');
   const [token, setToken] = useState(localStorage.getItem('admin_token') || '');
   const [config, setConfig] = useState(null);
@@ -16,7 +17,7 @@ export const AdminPortal = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3000/api/admin/login', {
+      const res = await fetch(`${API_BASE_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -36,7 +37,7 @@ export const AdminPortal = () => {
 
   const fetchConfig = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/admin/config', {
+      const res = await fetch(`${API_BASE_URL}/admin/config`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -51,7 +52,7 @@ export const AdminPortal = () => {
   const handleProbe = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/admin/probe', {
+      const res = await fetch(`${API_BASE_URL}/admin/probe`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -79,7 +80,7 @@ export const AdminPortal = () => {
 
   const saveConfig = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/admin/config', {
+      const res = await fetch(`${API_BASE_URL}/admin/config`, {
         method: 'PUT',
         headers: { 
           'Authorization': `Bearer ${token}`,
