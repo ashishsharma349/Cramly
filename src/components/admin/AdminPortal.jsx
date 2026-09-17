@@ -184,7 +184,7 @@ export const AdminPortal = () => {
                             onChange={() => toggleModel(provider, model)}
                             className="w-5 h-5 rounded border-slate-300 text-[#FF4D4D] focus:ring-[#FF4D4D]"
                           />
-                          <span className={\`text-sm font-medium \${isActive ? 'text-slate-900' : 'text-slate-600'}\`}>
+                          <span className={`text-sm font-medium ${isActive ? 'text-slate-900' : 'text-slate-600'}`}>
                             {model}
                           </span>
                         </label>
