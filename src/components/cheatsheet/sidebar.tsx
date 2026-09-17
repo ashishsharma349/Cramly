@@ -78,8 +78,7 @@ export function Sidebar({
       {/* Navigation */}
       <nav className="flex flex-col gap-1.5">
         {(() => {
-          const isAdmin = user?.email === 'ashishsharma90807@gmail.com' || (typeof localStorage !== 'undefined' && localStorage.getItem('admin_token'))
-          const dynamicNav = isAdmin ? [...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }] : NAV
+          const dynamicNav = [...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }];
           
           return dynamicNav.map((item) => {
             const isActive = active === item.id
