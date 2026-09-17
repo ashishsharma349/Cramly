@@ -185,14 +185,14 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
             </div>
 
             {/* Skeletons / Sections Grid */}
-            {job.status === 'error' ? (
+            {job.status === 'error' || (job.status === 'done' && sectionItems.length === 0) ? (
               <div className="py-24 text-center flex flex-col items-center justify-center space-y-4">
                 <div className="rounded-full bg-red-100 p-4">
                   <AlertTriangle className="size-10 text-red-600" />
                 </div>
                 <h3 className="font-bold text-xl text-slate-900">Generation Failed</h3>
                 <p className="text-sm font-medium text-slate-500 max-w-sm">
-                  {job.errorMessage || 'The connection to the AI generation service failed. Please close this window and try again.'}
+                  {job.errorMessage || 'AI generation failed due to high server demand. Please try again later.'}
                 </p>
               </div>
             ) : sectionItems.length === 0 ? (
@@ -208,6 +208,8 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
                     className={`break-inside-avoid rounded-xl border p-3.5 transition-all duration-300 ${
                       sec.status === 'done'
                         ? 'border-slate-200 bg-slate-50/50 shadow-xs'
+                        : sec.status === 'failed'
+                        ? 'border-red-300 bg-red-50 shadow-xs'
                         : 'border-dashed border-red-300 bg-red-50/20 motion-safe:animate-pulse'
                     }`}
                   >
@@ -215,11 +217,15 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
                       <h3 className="font-bold text-xs text-slate-900 flex items-center gap-1.5 min-w-0 break-words pr-2">
                         {sec.heading}
                       </h3>
-                      {sec.status !== 'done' && (
+                      {sec.status === 'failed' ? (
+                        <span className="text-[9px] font-medium text-white bg-red-500 px-1.5 py-0.5 rounded shrink-0">
+                          Failed
+                        </span>
+                      ) : sec.status !== 'done' ? (
                         <span className="text-[9px] font-medium text-[#FF4D4D] bg-red-50 px-1.5 py-0.5 rounded shrink-0">
                           Generating...
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {sec.status === 'done' ? (
