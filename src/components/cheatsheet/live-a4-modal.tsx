@@ -120,15 +120,9 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
       {/* Fixed Header Bar */}
       <header className="h-16 px-6 sm:px-8 border-b border-slate-200 bg-white/95 text-slate-900 flex items-center justify-between shrink-0 z-20 shadow-xs">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-red-50 text-[#FF4D4D] font-bold border border-red-100 shrink-0">
-            <Wand2 className="size-4" />
-          </span>
           <div className="min-w-0">
             <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 min-w-0">
               <span className="truncate">{topicTitle}</span>
-              <span className="hidden sm:inline-block text-[10px] border border-slate-200 px-2 py-0.5 rounded-md text-slate-500 uppercase tracking-wider font-semibold shrink-0">
-                {subjectName} • {levelName}
-              </span>
             </h3>
             <p className={`text-xs flex items-center gap-2 ${job.status === 'error' ? 'text-red-500' : 'text-slate-500'}`}>
               {isGenerating && job.status !== 'error' && <RefreshCw className="size-3 motion-safe:animate-spin text-[#FF4D4D]" />}
@@ -169,9 +163,6 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
             {/* A4 Document Header */}
             <div className="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-[#FF4D4D] uppercase tracking-widest block mb-1">
-                  {subjectName} • {levelName} Level
-                </span>
                 <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
                   {topicTitle}
                 </h2>
@@ -230,8 +221,14 @@ export function LiveA4Modal({ isOpen, onClose, isFavorite, onToggleFavorite, job
 
                     {sec.status === 'done' ? (
                       <div
-                        className="text-[10.5px] leading-relaxed text-slate-700 space-y-1.5"
-                        dangerouslySetInnerHTML={{ __html: sec.description || '' }}
+                        className="text-xs leading-relaxed text-slate-700"
+                        dangerouslySetInnerHTML={{ 
+                          __html: (sec.description || '').includes('- ') 
+                            ? `<ul class="list-disc pl-4 space-y-1 marker:text-slate-400">` + 
+                              (sec.description || '').split(/(?:^|\s)- /).filter(Boolean).map((item: string) => `<li>${item.trim()}</li>`).join('') + 
+                              `</ul>`
+                            : sec.description || ''
+                        }}
                       />
                     ) : (
                       <div className="space-y-2 py-1">
