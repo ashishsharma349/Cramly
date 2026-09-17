@@ -76,12 +76,12 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-        <nav className="flex flex-col gap-1.5">
-          {(() => {
-            const isAdmin = user?.isAdmin || (typeof localStorage !== 'undefined' && localStorage.getItem('admin_token'))
-            const dynamicNav = isAdmin ? [...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }] : NAV
-            
-            return dynamicNav.map((item) => {
+      <nav className="flex flex-col gap-1.5">
+        {(() => {
+          const isAdmin = user?.email === 'ashishsharma90807@gmail.com' || (typeof localStorage !== 'undefined' && localStorage.getItem('admin_token'))
+          const dynamicNav = isAdmin ? [...NAV, { id: 'admin', label: 'Admin Config', icon: Shield }] : NAV
+          
+          return dynamicNav.map((item) => {
             const isActive = active === item.id
             return (
               <button

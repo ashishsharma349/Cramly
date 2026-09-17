@@ -8,7 +8,6 @@ type User = {
   name: string;
   email: string;
   freeCheatsheetsRemaining: number;
-  isAdmin?: boolean;
 } | null;
 
 type AuthContextType = {
@@ -40,15 +39,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const json = await res.json();
       return json.profile;
     },
-    enabled: !!data?.session?.token,
+    enabled: !!data?.user,
   });
 
-  const user: User = data?.user ? {
+  const user = data?.user ? {
     id: data.user.id,
     name: data.user.name,
     email: data.user.email,
     freeCheatsheetsRemaining: profileData?.freeCheatsheetsRemaining ?? 5,
-    isAdmin: profileData?.isAdmin || false,
   } : null;
 
   const refreshUser = async () => {
