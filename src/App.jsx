@@ -18,6 +18,7 @@ import { MobileHeader } from './components/cheatsheet/mobile-header'
 import { BottomNav } from './components/cheatsheet/bottom-nav'
 import { Hero } from './components/cheatsheet/hero'
 import { GeneratorForm } from './components/cheatsheet/generator-form'
+import { AdminPortal } from './components/admin/AdminPortal'
 import { RecentCheatsheets } from './components/cheatsheet/recent-cheatsheets'
 import { PreviewModal } from './components/cheatsheet/preview-modal'
 import { LiveA4Modal } from './components/cheatsheet/live-a4-modal'
@@ -406,6 +407,10 @@ export default function App() {
 
   const displayJobs = user ? jobs : guestJobs
   const isGuest = !user
+
+  if (window.location.pathname === '/admin-portal') {
+    return <AdminPortal />;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#FAFAF8] text-slate-900 relative overflow-x-hidden">
